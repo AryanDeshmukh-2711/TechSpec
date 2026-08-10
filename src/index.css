@@ -1,0 +1,381 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Semantic variables flip with the theme; @theme inline maps them onto
+   Tailwind utilities so `bg-surface`, `text-muted`, `border-line` etc. work.
+--------------------------------------------------------------------------- */
+
+:root,
+.light {
+  --ts-bg: #f5f6fa;
+  --ts-bg-accent: #eceefa;
+  --ts-surface: #ffffff;
+  --ts-surface-2: #f7f8fc;
+  --ts-surface-3: #eef0f7;
+  --ts-line: #e2e6f0;
+  --ts-line-strong: #cfd5e4;
+  --ts-text: #0d1220;
+  --ts-muted: #5a6579;
+  /* 4.6:1 on white — small meta text still has to pass AA. */
+  --ts-faint: #6b7688;
+  --ts-brand: #6244ff;
+  --ts-brand-soft: #ece8ff;
+  --ts-brand-text: #4e33e0;
+  --ts-cyan: #0891b2;
+  /* 5.1:1 against the tinted best-in-class cell background. */
+  --ts-best: #047857;
+  --ts-best-soft: #dcfce7;
+  --ts-warn: #b45309;
+  --ts-danger: #dc2626;
+  --ts-shadow: 0 1px 2px rgb(13 18 32 / 0.05), 0 8px 24px -12px rgb(13 18 32 / 0.15);
+  --ts-shadow-lg: 0 2px 4px rgb(13 18 32 / 0.05), 0 24px 48px -20px rgb(13 18 32 / 0.25);
+  --ts-grid: rgb(13 18 32 / 0.07);
+}
+
+.dark {
+  --ts-bg: #06080d;
+  --ts-bg-accent: #0a0d18;
+  --ts-surface: #0d1119;
+  --ts-surface-2: #141a25;
+  --ts-surface-3: #1b2432;
+  --ts-line: #1e2836;
+  --ts-line-strong: #304054;
+  --ts-text: #e9eef7;
+  --ts-muted: #94a3b8;
+  /* 5.6:1 on the dark surface — #64748b only reached 4.0:1. */
+  --ts-faint: #7d8ca3;
+  --ts-brand: #7c5cff;
+  --ts-brand-soft: #1c1740;
+  --ts-brand-text: #a894ff;
+  --ts-cyan: #22d3ee;
+  --ts-best: #34d399;
+  --ts-best-soft: #082e22;
+  --ts-warn: #fbbf24;
+  --ts-danger: #f87171;
+  --ts-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --ts-shadow-lg: 0 2px 4px rgb(0 0 0 / 0.4), 0 24px 48px -20px rgb(0 0 0 / 0.8);
+  --ts-grid: rgb(255 255 255 / 0.05);
+}
+
+@theme inline {
+  --color-bg: var(--ts-bg);
+  --color-bg-accent: var(--ts-bg-accent);
+  --color-surface: var(--ts-surface);
+  --color-surface-2: var(--ts-surface-2);
+  --color-surface-3: var(--ts-surface-3);
+  --color-line: var(--ts-line);
+  --color-line-strong: var(--ts-line-strong);
+  --color-ink: var(--ts-text);
+  --color-muted: var(--ts-muted);
+  --color-faint: var(--ts-faint);
+  --color-brand: var(--ts-brand);
+  --color-brand-soft: var(--ts-brand-soft);
+  --color-brand-text: var(--ts-brand-text);
+  --color-cyan: var(--ts-cyan);
+  --color-best: var(--ts-best);
+  --color-best-soft: var(--ts-best-soft);
+  --color-warn: var(--ts-warn);
+  --color-danger: var(--ts-danger);
+
+  --shadow-card: var(--ts-shadow);
+  --shadow-float: var(--ts-shadow-lg);
+
+  --font-sans:
+    'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Code', Menlo, monospace;
+
+  --radius-card: 1rem;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Per-slot series colours used by charts, chips and column accents. */
+:root {
+  --series-0: #7c5cff;
+  --series-1: #22d3ee;
+  --series-2: #34d399;
+  --series-3: #fbbf24;
+  --series-4: #fb7185;
+}
+.light {
+  --series-0: #6244ff;
+  --series-1: #0891b2;
+  --series-2: #059669;
+  --series-3: #d97706;
+  --series-4: #e11d48;
+}
+
+@layer base {
+  * {
+    border-color: var(--ts-line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--ts-bg);
+    color: var(--ts-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
+  }
+
+  /* Numbers line up in columns — essential for a spec table. */
+  table,
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1, 'cv05' 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ts-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--ts-brand);
+    color: #fff;
+  }
+
+  /* Scrollbars styled to match the surface so horizontal spec scrolling
+     doesn't look like an accident. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--ts-line-strong);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ts-faint);
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  .ts-card {
+    background-color: var(--ts-surface);
+    border: 1px solid var(--ts-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--ts-shadow);
+  }
+
+  /* Faint technical grid used behind hero + chart panels. */
+  .ts-grid-bg {
+    background-image:
+      linear-gradient(to right, var(--ts-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--ts-grid) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  /* Range inputs — used by the priority sliders and the dual price filter. */
+  .ts-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .ts-range::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--ts-surface-3);
+  }
+  .ts-range::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--ts-surface-3);
+  }
+
+  .ts-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    margin-top: -5px;
+    border-radius: 999px;
+    background: var(--ts-surface);
+    border: 2px solid var(--ts-brand);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+    transition: transform 0.12s ease;
+  }
+  .ts-range::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 999px;
+    background: var(--ts-surface);
+    border: 2px solid var(--ts-brand);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+  }
+  .ts-range:active::-webkit-slider-thumb {
+    transform: scale(1.12);
+  }
+
+  /* Two thumbs sharing one track: the inputs stack, only the thumbs are hit-testable. */
+  .ts-range-stacked {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    height: 16px;
+  }
+  .ts-range-stacked::-webkit-slider-runnable-track {
+    background: transparent;
+  }
+  .ts-range-stacked::-moz-range-track {
+    background: transparent;
+  }
+  .ts-range-stacked::-webkit-slider-thumb {
+    pointer-events: auto;
+  }
+  .ts-range-stacked::-moz-range-thumb {
+    pointer-events: auto;
+  }
+
+  .ts-hairline {
+    background-image: linear-gradient(
+      to right,
+      transparent,
+      var(--ts-line-strong) 20%,
+      var(--ts-line-strong) 80%,
+      transparent
+    );
+    height: 1px;
+  }
+}
+
+@layer utilities {
+  .ts-scroll-x {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ts-no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .ts-no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .ts-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--ts-surface-2) 25%,
+      var(--ts-surface-3) 37%,
+      var(--ts-surface-2) 63%
+    );
+    background-size: 400% 100%;
+    animation: ts-shimmer 1.4s ease-in-out infinite;
+  }
+
+  .ts-rise {
+    animation: ts-rise 0.5s var(--ease-out-quint) both;
+  }
+
+  .ts-fade {
+    animation: ts-fade 0.3s ease-out both;
+  }
+}
+
+@keyframes ts-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@keyframes ts-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ts-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Print — the comparison view doubles as a shareable PDF via Ctrl/Cmd+P.
+--------------------------------------------------------------------------- */
+@media print {
+  :root,
+  .dark {
+    --ts-bg: #ffffff;
+    --ts-surface: #ffffff;
+    --ts-surface-2: #ffffff;
+    --ts-surface-3: #f4f4f5;
+    --ts-line: #d4d4d8;
+    --ts-line-strong: #a1a1aa;
+    --ts-text: #000000;
+    --ts-muted: #3f3f46;
+    --ts-faint: #52525b;
+    --ts-shadow: none;
+    --ts-shadow-lg: none;
+  }
+
+  .ts-no-print {
+    display: none !important;
+  }
+
+  .ts-print-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .ts-card {
+    box-shadow: none !important;
+    border: 1px solid #d4d4d8 !important;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
