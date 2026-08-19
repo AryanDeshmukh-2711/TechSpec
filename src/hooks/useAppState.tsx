@@ -52,7 +52,7 @@ interface AppStateValue {
   goPicker: () => void
   goCompare: () => void
   startMatchup: (category: CategoryId, ids: string[]) => void
-  showToast: (message: string) => void
+  showToast: (message: string) => void 
   /** Products in the current selection, in selection order. */
   selected: Product[]
 }
