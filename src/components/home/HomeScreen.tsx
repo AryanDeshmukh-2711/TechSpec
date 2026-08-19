@@ -17,7 +17,7 @@ export function HomeScreen() {
           className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[720px] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
           style={{
             background:
-              'radial-gradient(ellipse at center, var(--ts-brand) 0%, transparent 70%)',
+              'radial-gradient(ellipse at center, var(--ts-brand) 0%, transparent 70%)', 
           }}
         />
         <div className="relative mx-auto w-full max-w-[1400px] px-4 py-16 sm:px-6 sm:py-24">
