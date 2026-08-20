@@ -5,7 +5,7 @@
   "type": "module",
   "description": "TechSpec — a priority-weighted technical product comparison engine.",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite", 
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
