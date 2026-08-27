@@ -4,7 +4,7 @@ import { laptopsCategory, laptopProducts } from './categories/laptops'
 import { tabletsCategory, tabletProducts } from './categories/tablets'
 import { smartwatchesCategory, smartwatchProducts } from './categories/smartwatches'
 import { headphonesCategory, headphoneProducts } from './categories/headphones'
-import { camerasCategory, cameraProducts } from './categories/cameras'
+import { camerasCategory, cameraProducts } from './categories/cameras' 
 
 /**
  * Product records don't carry `price` / `releaseYear` inside their spec map —
