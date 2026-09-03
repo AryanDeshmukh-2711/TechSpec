@@ -17,7 +17,7 @@ npm run dev
 ## What makes it different
 
 | | Typical comparison site | TechSpec |
-|---|---|---|
+|---|---|---| 
 | Scoring | One fixed editorial score | Seven weighted pillars you control with sliders |
 | Normalisation | Best-of-the-two-you-picked | 0–100 against the **entire category catalogue** |
 | Verdict | "X is better" | Names the specs that produced the result, and where the winner gives ground |
