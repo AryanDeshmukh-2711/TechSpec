@@ -14,7 +14,7 @@ npm run dev
 
 ---
 
-## What makes it different
+## What makes it different 
 
 | | Typical comparison site | TechSpec |
 |---|---|---| 
