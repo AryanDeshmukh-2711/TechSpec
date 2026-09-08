@@ -75,7 +75,7 @@ export const smartwatchesCategory: Category = {
     { id: 'outdoors', label: 'Outdoors & adventure', icon: 'Mountain', blurb: 'Maps, toughness, multi-day battery', weights: { sport: 9, battery: 9, display: 5 } },
     { id: 'endurance', label: 'Battery life', icon: 'BatteryCharging', blurb: 'Weeks, not days', weights: { battery: 10, value: 2 } },
     { id: 'everyday', label: 'Everyday smartwatch', icon: 'Sparkles', blurb: 'Notifications, apps, payments', weights: { smart: 10, display: 6, health: 4 } },
-  ],
+  ], 
 
   quickFilters: [
     { id: 'under-400', label: 'Under $400', test: (p) => p.price < 400 },
