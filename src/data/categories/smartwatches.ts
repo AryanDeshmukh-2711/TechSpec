@@ -11,7 +11,7 @@ export const smartwatchesCategory: Category = {
   label: 'Smartwatches',
   singular: 'watch',
   plural: 'watches',
-  icon: 'Watch',
+  icon: 'Watch', 
   blurb: 'Health trackers, running watches and full-fat smartwatches side by side.',
   groupOrder: ['display', 'health', 'features', 'battery', 'build', 'connectivity', 'price'],
   cardSpecs: ['caseSize', 'batteryLifeDays', 'platform', 'weight'],
