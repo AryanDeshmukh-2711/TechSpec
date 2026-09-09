@@ -1,206 +1,344 @@
-import { CATEGORIES, FEATURED_MATCHUPS, TOTAL_PRODUCTS, getCategory, productCount } from '@/data'
+import { useMemo } from 'react'
+import { CATEGORIES, FEATURED_MATCHUPS, getCategory } from '@/data'
 import { useAppState } from '@/hooks/useAppState'
+import { useCatalogue } from '@/data/store/CatalogueProvider'
+import { useProfile } from '@/personalisation/ProfileProvider'
+import { seriesColor } from '@/lib/format'
+import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
 import { Badge, Button } from '@/components/ui/primitives'
-import { pluralise, seriesColor } from '@/lib/format'
-import { cn } from '@/lib/cn'
+import { DeviceGlyph } from '@/components/DeviceGlyph'
 
+/**
+ * The home screen is a feed, not a brochure.
+ *
+ * A first-time visitor gets the pitch and a way in. Everyone after that gets
+ * their own things first: what they were comparing, what they looked at but
+ * never decided on, and the categories they actually use — ordered by use, not
+ * by our preference.
+ */
 export function HomeScreen() {
-  const { selectCategory, startMatchup, recents } = useAppState()
+  const { selectCategory, startMatchup } = useAppState()
+  const catalogue = useCatalogue()
+  const { profile, hasHistory, orderedCategories, suggestions } = useProfile()
+
+  const categories = useMemo(() => {
+    const order = orderedCategories(CATEGORIES.map((c) => c.id))
+    return order
+      .map((id) => CATEGORIES.find((c) => c.id === id))
+      .filter((c): c is (typeof CATEGORIES)[number] => Boolean(c))
+  }, [orderedCategories])
+
+  const picks = useMemo(
+    () => suggestions((id) => catalogue.catalogueFor(id)),
+    [suggestions, catalogue],
+  )
+
+  const recent = profile.comparisons.slice(0, 4)
+  const totalDevices = CATEGORIES.reduce(
+    (sum, c) => sum + catalogue.catalogueFor(c.id).length,
+    0,
+  )
 
   return (
     <div className="ts-fade">
       {/* ------------------------------------------------------------ hero */}
       <section className="relative overflow-hidden border-b border-line">
-        <div className="ts-grid-bg pointer-events-none absolute inset-0" />
-        <div
-          className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[720px] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, var(--ts-brand) 0%, transparent 70%)', 
-          }}
-        />
-        <div className="relative mx-auto w-full max-w-[1400px] px-4 py-16 sm:px-6 sm:py-24">
-          <div className="max-w-3xl">
-            <Badge tone="brand" icon="Sparkles">
-              WEIGHTED SCORING ENGINE
-            </Badge>
-            <h1 className="mt-5 text-[34px] leading-[1.08] font-semibold tracking-tight text-balance text-ink sm:text-[52px]">
-              Every comparison site tells you which is better.
-              <br />
-              <span className="text-brand-text">This one asks you first.</span>
-            </h1>
-            <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted sm:text-base">
-              Pick a category, choose up to five products, then tell TechSpec what you actually
-              care about. Battery over camera? Portability over raw speed? The scores, the
-              rankings and the verdict all recompute as you move the sliders — because “best”
-              depends on who's asking.
-            </p>
+        <div className="ts-texture pointer-events-none absolute inset-0" />
+        <div className="ts-glow pointer-events-none absolute inset-x-0 top-0 h-72" />
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button
-                size="lg"
-                variant="primary"
-                iconRight="ArrowRight"
-                onClick={() => selectCategory('mobiles')}
-              >
-                Compare smartphones
-              </Button>
-              <Button size="lg" onClick={() => selectCategory('laptops')} icon="Laptop">
-                Compare laptops
-              </Button>
-            </div>
-
-            <dl className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
-              <Stat value={String(TOTAL_PRODUCTS)} label="products" />
-              <Stat value={String(CATEGORIES.length)} label="categories" />
-              <Stat value="250+" label="tracked specs" />
-              <Stat value="6" label="buyer profiles" />
-            </dl>
+        <div className="relative mx-auto w-full max-w-[1440px] px-4 sm:px-6">
+          <div className={cn('mx-auto max-w-3xl text-center', hasHistory ? 'py-12' : 'py-20 sm:py-28')}>
+            {hasHistory ? (
+              <>
+                <Badge tone="brand" icon="Sparkles">
+                  WELCOME BACK
+                </Badge>
+                <h1 className="ts-display mt-4 text-[32px] leading-[1.1] text-balance text-ink sm:text-[40px]">
+                  Pick up where you left off
+                </h1>
+              </>
+            ) : (
+              <>
+                <Badge tone="brand" icon="Sparkles">
+                  YOUR CATALOGUE · YOUR WEIGHTS
+                </Badge>
+                <h1 className="ts-display mt-5 text-[38px] leading-[1.05] text-balance text-ink sm:text-[58px]">
+                  Everyone else tells you what's best.
+                  <br />
+                  <span className="text-brand-text">We ask you first.</span>
+                </h1>
+                <p className="mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-muted sm:text-[16.5px]">
+                  Choose what matters — battery over camera, portability over raw speed — and
+                  every score, ranking and verdict recalculates around you. Then edit the specs,
+                  add your own devices, and make the catalogue yours.
+                </p>
+                <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+                  <Button
+                    size="lg"
+                    variant="primary"
+                    iconRight="ArrowRight"
+                    onClick={() => selectCategory('mobiles')}
+                  >
+                    Compare phones
+                  </Button>
+                  <Button size="lg" icon="Laptop" onClick={() => selectCategory('laptops')}>
+                    Compare laptops
+                  </Button>
+                </div>
+                <dl className="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+                  <Stat value={String(totalDevices)} label="devices, all editable" />
+                  <Stat value={String(CATEGORIES.length)} label="categories" />
+                  <Stat value="250+" label="tracked specs" />
+                  <Stat value="0" label="accounts required" />
+                </dl>
+              </>
+            )}
           </div>
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6">
-        {/* ------------------------------------------------------ categories */}
-        <section className="py-12 sm:py-16">
-          <SectionHeading
-            eyebrow="Step one"
-            title="Choose a category"
-            subtitle="Comparisons stay within a category so every spec is genuinely like-for-like."
-          />
-          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {CATEGORIES.map((category, index) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => selectCategory(category.id)}
-                className="group ts-card relative overflow-hidden p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-float"
-              >
-                <div
-                  className="pointer-events-none absolute -right-8 -bottom-10 h-32 w-32 rounded-full opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-40"
-                  style={{ background: seriesColor(index) }}
-                />
-                <div className="relative flex items-start gap-4">
-                  <span
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-surface-2 transition-colors group-hover:border-line-strong"
-                    style={{ color: seriesColor(index) }}
-                  >
-                    <Icon name={category.icon} size={20} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-[15px] font-semibold text-ink">{category.label}</h3>
-                      <Icon
-                        name="ArrowRight"
-                        size={14}
-                        className="text-faint opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
-                      />
-                    </div>
-                    <p className="mt-1 text-[13px] leading-relaxed text-muted">
-                      {category.blurb}
-                    </p>
-                    <p className="mt-2.5 text-[11.5px] font-medium tracking-wide text-faint uppercase">
-                      {pluralise(productCount(category.id), 'model')} ·{' '}
-                      {category.specs.length} specs
-                    </p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* --------------------------------------------------------- recents */}
-        {recents.length > 0 && (
-          <section className="pb-12 sm:pb-16">
-            <SectionHeading eyebrow="Pick up where you left off" title="Recent comparisons" />
-            <div className="mt-6 flex flex-wrap gap-2.5">
-              {recents.map((recent) => {
-                const category = getCategory(recent.category)
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6">
+        {/* -------------------------------------------------- continue */}
+        {recent.length > 0 && (
+          <Section
+            eyebrow="Continue"
+            title="Your recent comparisons"
+            subtitle="Priority weights are remembered per category, so these open exactly as you left them."
+          >
+            <div className="ts-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {recent.map((comparison, index) => {
+                const category = getCategory(comparison.category)
                 return (
                   <button
-                    key={recent.ids.join(',')}
+                    key={comparison.ids.join(',')}
                     type="button"
-                    onClick={() => startMatchup(recent.category, recent.ids)}
-                    className="ts-card flex items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:border-line-strong"
+                    style={{ '--i': index } as React.CSSProperties}
+                    onClick={() => startMatchup(comparison.category, comparison.ids)}
+                    className="group ts-card flex flex-col p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card"
                   >
-                    {category && <Icon name={category.icon} size={15} className="text-faint" />}
-                    <span className="text-[13px] font-medium text-ink">
-                      {recent.names.join('  vs  ')}
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-faint uppercase">
+                      {category && <Icon name={category.icon} size={12} />}
+                      {category?.label}
                     </span>
-                    <Icon name="RotateCcw" size={13} className="text-faint" />
+                    <span className="mt-2.5 flex-1 text-[14px] leading-snug font-medium text-ink">
+                      {comparison.names.join('  ·  ')}
+                    </span>
+                    <span className="mt-3 flex items-center gap-1 text-[12px] font-medium text-brand-text">
+                      Reopen
+                      <Icon
+                        name="ArrowRight"
+                        size={12}
+                        className="transition-transform group-hover:translate-x-0.5"
+                      />
+                    </span>
                   </button>
                 )
               })}
             </div>
-          </section>
+          </Section>
         )}
 
-        {/* -------------------------------------------------------- matchups */}
-        <section className="pb-12 sm:pb-16">
-          <SectionHeading
-            eyebrow="Or skip ahead"
-            title="Popular matchups"
-            subtitle="Curated head-to-heads, already loaded and ready to reweight."
-          />
-          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURED_MATCHUPS.map((matchup) => {
-              const category = getCategory(matchup.category)
-              if (!category) return null
+        {/* -------------------------------------------------- suggestions */}
+        {picks.length > 0 && (
+          <Section
+            eyebrow="Picked for you"
+            title="Worth a look"
+            subtitle="Built from what you've actually opened — and it always tells you why."
+          >
+            <div className="ts-stagger grid gap-3 md:grid-cols-3">
+              {picks.map((pick, index) => {
+                const category = getCategory(pick.category)
+                const products = catalogue
+                  .catalogueFor(pick.category)
+                  .filter((p) => pick.ids.includes(p.id))
+                return (
+                  <button
+                    key={`${pick.category}-${pick.ids.join(',')}`}
+                    type="button"
+                    style={{ '--i': index } as React.CSSProperties}
+                    onClick={() => startMatchup(pick.category, pick.ids)}
+                    className="group ts-card relative overflow-hidden p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card"
+                  >
+                    <div className="flex -space-x-3">
+                      {products.slice(0, 4).map((product) => (
+                        <span
+                          key={product.id}
+                          className="h-12 w-10 shrink-0 rounded-lg border border-line bg-surface"
+                        >
+                          <DeviceGlyph
+                            category={product.category}
+                            accent={product.accent}
+                            glow={false}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                    <h3 className="mt-4 text-[15px] leading-snug font-semibold text-ink">
+                      {pick.title}
+                    </h3>
+                    <p className="mt-1.5 flex items-start gap-1.5 text-[12.5px] leading-relaxed text-muted">
+                      <Icon name="Lightbulb" size={13} className="mt-0.5 shrink-0 text-best" />
+                      {pick.reason}
+                    </p>
+                    <p className="mt-3 text-[11px] font-medium tracking-wide text-faint uppercase">
+                      {category?.label}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </Section>
+        )}
+
+        {/* --------------------------------------------------- categories */}
+        <Section
+          eyebrow={hasHistory ? 'Browse' : 'Step one'}
+          title={hasHistory ? 'Your categories' : 'Choose a category'}
+          subtitle={
+            hasHistory
+              ? 'Ordered by how much you use them.'
+              : 'Comparisons stay within a category so every spec is genuinely like-for-like.'
+          }
+        >
+          <div className="ts-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map((category, index) => {
+              const devices = catalogue.catalogueFor(category.id)
+              const stats = catalogue.statsFor(category.id)
+              const used = profile.categoryUse[category.id] ?? 0
               return (
                 <button
-                  key={matchup.title}
+                  key={category.id}
                   type="button"
-                  onClick={() => startMatchup(matchup.category, matchup.ids)}
-                  className="group ts-card flex flex-col p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-float"
+                  style={{ '--i': index } as React.CSSProperties}
+                  onClick={() => selectCategory(category.id)}
+                  className="group ts-card relative overflow-hidden p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card"
                 >
-                  <div className="flex items-center gap-2 text-[11.5px] font-medium tracking-wide text-faint uppercase">
-                    <Icon name={category.icon} size={13} />
-                    {category.label}
-                  </div>
-                  <h3 className="mt-2.5 text-[15px] font-semibold text-ink">{matchup.title}</h3>
-                  <p className="mt-1 text-[13px] leading-relaxed text-muted">
-                    {matchup.subtitle}
-                  </p>
-                  <div className="mt-4 flex items-center gap-1.5 text-[12.5px] font-medium text-brand-text">
-                    Open comparison
+                  <div
+                    className="pointer-events-none absolute -right-10 -bottom-12 h-36 w-36 rounded-full opacity-0 blur-3xl transition-opacity duration-300 group-hover:opacity-30"
+                    style={{ background: seriesColor(index) }}
+                  />
+                  <div className="relative flex items-start gap-4">
+                    <span
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-line bg-surface-2 transition-colors group-hover:border-line-strong"
+                      style={{ color: seriesColor(index) }}
+                    >
+                      <Icon name={category.icon} size={21} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-[15.5px] font-semibold text-ink">{category.label}</h3>
+                        {stats.total > 0 && (
+                          <Badge tone="brand" icon="Pencil">
+                            {stats.total} YOURS
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
+                        {category.blurb}
+                      </p>
+                      <p className="tnum mt-3 text-[11.5px] font-medium tracking-wide text-faint uppercase">
+                        {devices.length} devices · {category.specs.length} specs
+                        {used > 0 && ` · opened ${used}×`}
+                      </p>
+                    </div>
                     <Icon
-                      name="ArrowRight"
-                      size={13}
-                      className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      name="ArrowUpRight"
+                      size={16}
+                      className="shrink-0 text-faint opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
                     />
                   </div>
                 </button>
               )
             })}
           </div>
-        </section>
+        </Section>
 
-        {/* -------------------------------------------------- how it works */}
-        <section className="pb-16 sm:pb-24">
-          <SectionHeading eyebrow="Under the hood" title="How the scoring works" />
-          <div className="mt-7 grid gap-3 sm:grid-cols-3">
+        {/* ----------------------------------------------------- matchups */}
+        {!hasHistory && (
+          <Section
+            eyebrow="Or skip ahead"
+            title="Popular matchups"
+            subtitle="Curated head-to-heads, already loaded and ready to reweight."
+          >
+            <div className="ts-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {FEATURED_MATCHUPS.map((matchup, index) => {
+                const category = getCategory(matchup.category)
+                if (!category) return null
+                const products = catalogue
+                  .catalogueFor(matchup.category)
+                  .filter((p) => matchup.ids.includes(p.id))
+                if (products.length < 2) return null
+                return (
+                  <button
+                    key={matchup.title}
+                    type="button"
+                    style={{ '--i': index } as React.CSSProperties}
+                    onClick={() => startMatchup(matchup.category, matchup.ids)}
+                    className="group ts-card flex flex-col p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card"
+                  >
+                    <div className="flex -space-x-3">
+                      {products.slice(0, 4).map((product) => (
+                        <span
+                          key={product.id}
+                          className="h-12 w-10 shrink-0 rounded-lg border border-line bg-surface"
+                        >
+                          <DeviceGlyph
+                            category={product.category}
+                            accent={product.accent}
+                            glow={false}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                    <h3 className="mt-4 text-[15px] font-semibold text-ink">{matchup.title}</h3>
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
+                      {matchup.subtitle}
+                    </p>
+                    <p className="mt-4 flex items-center gap-1.5 text-[12.5px] font-medium text-brand-text">
+                      Open comparison
+                      <Icon
+                        name="ArrowRight"
+                        size={13}
+                        className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      />
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </Section>
+        )}
+
+        {/* ------------------------------------------------ how it works */}
+        <Section eyebrow="Under the hood" title="Nothing here is a black box">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <HowCard
               icon="Scale"
               step="01"
-              title="Normalised against the whole category"
-              body="Every spec is scored 0–100 against all models in its category — not just the ones you selected. A full bar means class-leading, not merely best-of-two."
+              title="Scored against the whole class"
+              body="Every spec is 0–100 against all devices in its category, not just the ones you picked. A full bar means class-leading."
             />
             <HowCard
               icon="SlidersHorizontal"
               step="02"
-              title="Weighted by your priorities"
-              body="Specs roll up into pillars, and pillars roll up using your slider weights. Nothing is hidden behind a proprietary score you can't interrogate."
+              title="Weighted by you"
+              body="Specs roll into pillars, pillars roll up using your sliders. Change one and the winner can change with it."
             />
             <HowCard
               icon="Target"
               step="03"
-              title="Explained, not asserted"
-              body="Every verdict names the specs that produced it, and the value frontier shows what's genuinely worth its price."
+              title="Auditable to the spec"
+              body="Open any pillar to see the specs behind it, their weights and the points each contributed. They always sum."
+            />
+            <HowCard
+              icon="Pencil"
+              step="04"
+              title="Yours to correct"
+              body="Disagree with a number? Change it. Add a device we don't have. Export the whole catalogue as JSON."
             />
           </div>
-        </section>
+        </Section>
       </div>
     </div>
   )
@@ -208,39 +346,40 @@ export function HomeScreen() {
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div>
+    <div className="text-center">
       <dt className="sr-only">{label}</dt>
-      <dd className="flex items-baseline gap-1.5">
-        <span className="tnum text-xl font-semibold text-ink">{value}</span>
-        <span className="text-[12.5px] text-faint">{label}</span>
+      <dd>
+        <span className="ts-display tnum block text-[26px] text-ink">{value}</span>
+        <span className="block text-[12px] text-faint">{label}</span>
       </dd>
     </div>
   )
 }
 
-function SectionHeading({
+function Section({
   eyebrow,
   title,
   subtitle,
-  className,
+  children,
 }: {
   eyebrow?: string
   title: string
   subtitle?: string
-  className?: string
+  children: React.ReactNode
 }) {
   return (
-    <div className={cn('max-w-2xl', className)}>
-      {eyebrow && (
-        <p className="text-[11.5px] font-semibold tracking-[0.08em] text-brand-text uppercase">
-          {eyebrow}
-        </p>
-      )}
-      <h2 className="mt-1.5 text-[22px] font-semibold tracking-tight text-ink sm:text-[26px]">
-        {title}
-      </h2>
-      {subtitle && <p className="mt-2 text-[14px] leading-relaxed text-muted">{subtitle}</p>}
-    </div>
+    <section className="py-10 sm:py-14">
+      <div className="mb-7 max-w-2xl">
+        {eyebrow && (
+          <p className="text-[11.5px] font-semibold tracking-[0.09em] text-brand-text uppercase">
+            {eyebrow}
+          </p>
+        )}
+        <h2 className="ts-display mt-2 text-[25px] text-ink sm:text-[29px]">{title}</h2>
+        {subtitle && <p className="mt-2.5 text-[14px] leading-relaxed text-muted">{subtitle}</p>}
+      </div>
+      {children}
+    </section>
   )
 }
 
@@ -258,8 +397,8 @@ function HowCard({
   return (
     <div className="ts-card p-5">
       <div className="flex items-center justify-between">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-surface-2 text-brand-text">
-          <Icon name={icon} size={16} />
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface-2 text-brand-text">
+          <Icon name={icon} size={17} />
         </span>
         <span className="tnum text-[11px] font-semibold tracking-wider text-faint">{step}</span>
       </div>
