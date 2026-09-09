@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { Category } from '@/types'
 import { SPEC_GROUPS } from '@/data'
 import { MIN_SELECTION, useAppState } from '@/hooks/useAppState'
-import { computePersonaVerdicts, scoreProducts } from '@/lib/scoring'
+import { applyDealBreakers, computePersonaVerdicts, scoreProducts } from '@/lib/scoring'
 import { seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
@@ -15,6 +15,8 @@ import { PriorityPanel } from './PriorityPanel'
 import { PersonaGrid } from './PersonaGrid'
 import { HeadToHead } from './HeadToHead'
 import { SpecTable } from './SpecTable'
+import { PillarBreakdown } from './PillarBreakdown'
+import { DealBreakers } from './DealBreakers'
 import { ExportBar } from './ExportBar'
 
 export function CompareScreen({ category }: { category: Category }) {
@@ -27,10 +29,12 @@ export function CompareScreen({ category }: { category: Category }) {
     setPriorities,
     resetPriorities,
     removeProduct,
+    toggleProduct,
     goPicker,
     showToast,
   } = useAppState()
 
+  const [dealBreakers, setDealBreakers] = useState<string[]>([])
   const [differencesOnly, setDifferencesOnly] = useState(false)
   const [biggestGapsFirst, setBiggestGapsFirst] = useState(false)
 
@@ -42,9 +46,16 @@ export function CompareScreen({ category }: { category: Category }) {
     [category, catalogue, selected, priorities, loadState],
   )
 
+  // Must-haves gate the ranking and every verdict, but never the spec table:
+  // a disqualified product stays visible so you can see what it cost.
+  const { eligible, failures } = useMemo(
+    () => applyDealBreakers(category, scored, dealBreakers),
+    [category, scored, dealBreakers],
+  )
+
   const verdicts = useMemo(
-    () => (scored.length ? computePersonaVerdicts(category, scored) : []),
-    [category, scored],
+    () => (eligible.length ? computePersonaVerdicts(category, eligible) : []),
+    [category, eligible],
   )
 
   const colors = useMemo(
@@ -145,14 +156,34 @@ export function CompareScreen({ category }: { category: Category }) {
       </header>
 
       <ProductColumns
+        category={category}
+        catalogue={catalogue}
         scored={scored}
         colors={colors}
+        failures={failures}
         onRemove={removeProduct}
+        onAdd={toggleProduct}
         canRemove={selected.length > MIN_SELECTION}
       />
 
       <div className="mt-5 space-y-4 pb-4">
-        <VerdictPanel category={category} scored={scored} colors={colors} />
+        <DealBreakers
+          category={category}
+          scored={scored}
+          active={dealBreakers}
+          failures={failures}
+          eligibleCount={eligible.length}
+          onToggle={(id) =>
+            setDealBreakers((current) =>
+              current.includes(id) ? current.filter((x) => x !== id) : [...current, id],
+            )
+          }
+          onClear={() => setDealBreakers([])}
+        />
+
+        {eligible.length > 0 && (
+          <VerdictPanel category={category} scored={eligible} colors={colors} />
+        )}
 
         <PriorityPanel
           category={category}
@@ -163,8 +194,15 @@ export function CompareScreen({ category }: { category: Category }) {
         />
 
         {/* ---------------------------------------------------------- charts */}
+        {/* min-w-0 on the grid children: without it a grid item defaults to
+            min-width:auto and is sized by its widest content, so the pillar
+            breakdown table's min-width escapes its own scroll container and
+            pushes the whole page sideways. */}
         <div className="grid gap-4 lg:grid-cols-2">
-          <section className="ts-card ts-print-block p-5" aria-labelledby="radar-heading">
+          <section
+            className="ts-card ts-print-block min-w-0 p-5"
+            aria-labelledby="radar-heading"
+          >
             <h2
               id="radar-heading"
               className="flex items-center gap-2 text-[15px] font-semibold text-ink"
@@ -187,9 +225,13 @@ export function CompareScreen({ category }: { category: Category }) {
                 size={340}
               />
             </div>
+            <PillarBreakdown category={category} scored={scored} colors={colors} />
           </section>
 
-          <section className="ts-card ts-print-block p-5" aria-labelledby="value-heading">
+          <section
+            className="ts-card ts-print-block min-w-0 p-5"
+            aria-labelledby="value-heading"
+          >
             <h2
               id="value-heading"
               className="flex items-center gap-2 text-[15px] font-semibold text-ink"
@@ -207,7 +249,9 @@ export function CompareScreen({ category }: { category: Category }) {
           </section>
         </div>
 
-        <PersonaGrid verdicts={verdicts} colors={colors} onApplyPreset={applyPreset} />
+        {verdicts.length > 0 && (
+          <PersonaGrid verdicts={verdicts} colors={colors} onApplyPreset={applyPreset} />
+        )}
 
         <HeadToHead category={category} scored={scored} colors={colors} />
 

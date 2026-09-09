@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -12,5 +13,11 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+  },
+  test: {
+    // jsdom only where a test touches the DOM (urlState reads window.location).
+    environment: 'jsdom',
+    include: ['src/**/*.test.ts'],
+    reporters: 'dot',
   },
 })
