@@ -34,7 +34,7 @@ export function ProductColumns({
   const topScore = Math.max(...scored.map((s) => s.overall))
 
   return (
-    <div className="sticky top-16 z-20 -mx-4 hidden border-b border-line bg-paper/95 px-4 py-3 backdrop-blur-xl lg:block">
+    <div className="sticky top-16 z-20 -mx-4 hidden border-b border-line bg-bg/95 px-4 py-3 backdrop-blur-xl lg:block">
       {/*
         The transparent border + px-4 reproduce the spec card's box model
         (1px border, 1rem row padding) exactly. Without it the header's
