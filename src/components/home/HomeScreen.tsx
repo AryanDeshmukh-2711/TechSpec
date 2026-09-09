@@ -3,6 +3,7 @@ import { CATEGORIES, FEATURED_MATCHUPS, getCategory } from '@/data'
 import { useAppState } from '@/hooks/useAppState'
 import { useCatalogue } from '@/data/store/CatalogueProvider'
 import { useProfile } from '@/personalisation/ProfileProvider'
+import { useLibrary } from '@/data/store/LibraryProvider'
 import { seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
@@ -21,6 +22,7 @@ export function HomeScreen() {
   const { selectCategory, startMatchup } = useAppState()
   const catalogue = useCatalogue()
   const { profile, hasHistory, orderedCategories, suggestions } = useProfile()
+  const { saved, remove } = useLibrary()
 
   const categories = useMemo(() => {
     const order = orderedCategories(CATEGORIES.map((c) => c.id))
@@ -78,6 +80,53 @@ export function HomeScreen() {
       </section>
 
       <div className="mx-auto w-full max-w-[1280px] px-4">
+        {/* ------------------------------------------------------ saved */}
+        {saved.length > 0 && (
+          <Section
+            title="Saved comparisons"
+            subtitle="Kept deliberately, with the priority weights you had at the time."
+          >
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {saved.map((entry) => {
+                const entryCategory = getCategory(entry.category)
+                return (
+                  <div
+                    key={entry.id}
+                    className="group ts-card relative flex flex-col p-4 transition-colors hover:border-line-strong"
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        startMatchup(entry.category, entry.items.map((i) => i.productId))
+                      }
+                      className="text-left"
+                    >
+                      <span className="flex items-center gap-1.5 text-[11px] font-medium tracking-wide text-faint uppercase">
+                        {entryCategory && <Icon name={entryCategory.icon} size={12} />}
+                        {entryCategory?.label}
+                      </span>
+                      <span className="mt-2 block text-[14px] leading-snug font-semibold text-ink">
+                        {entry.title}
+                      </span>
+                      <span className="mt-1 block text-[12px] text-muted">
+                        {entry.items.map((i) => i.productName).join(' · ')}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${entry.title}`}
+                      onClick={() => remove(entry.id)}
+                      className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded text-faint opacity-0 transition-opacity group-hover:opacity-100 hover:bg-surface-2 hover:text-danger focus-visible:opacity-100"
+                    >
+                      <Icon name="X" size={13} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </Section>
+        )}
+
         {/* -------------------------------------------------- continue */}
         {recent.length > 0 && (
           <Section

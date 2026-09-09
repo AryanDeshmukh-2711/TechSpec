@@ -17,7 +17,11 @@ import { HeadToHead } from './HeadToHead'
 import { SpecTable } from './SpecTable'
 import { PillarBreakdown } from './PillarBreakdown'
 import { DealBreakers } from './DealBreakers'
+import { PriceHistoryPanel } from './PriceHistoryPanel'
+import { SaveComparison } from './SaveComparison'
 import { ExportBar } from './ExportBar'
+import { PageMeta, StructuredData } from '@/components/StructuredData'
+import { comparisonSchema } from '@/lib/structuredData'
 
 export function CompareScreen({ category }: { category: Category }) {
   const {
@@ -129,6 +133,15 @@ export function CompareScreen({ category }: { category: Category }) {
 
   return (
     <div className="ts-fade mx-auto w-full max-w-[1280px] px-4 pt-5">
+      {/* SEO: schema.org ItemList + a title/description matching the page. */}
+      <PageMeta
+        title={`${selected.map((p) => p.name).join(' vs ')} — ${category.label} comparison`}
+        description={`Side-by-side ${category.singular} comparison of ${selected
+          .map((p) => p.name)
+          .join(', ')}, scored against the specs you weight.`}
+      />
+      <StructuredData id="comparison" data={comparisonSchema(category, scored)} />
+
       {/* --------------------------------------------------------- toolbar */}
       <div className="ts-no-print flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -136,13 +149,21 @@ export function CompareScreen({ category }: { category: Category }) {
             Change selection
           </Button>
         </div>
-        <ExportBar
-          category={category}
-          scored={scored}
-          verdicts={verdicts}
-          priorities={priorities}
-          onToast={showToast}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <SaveComparison
+            category={category}
+            products={selected}
+            priorities={priorities}
+            onToast={showToast}
+          />
+          <ExportBar
+            category={category}
+            scored={scored}
+            verdicts={verdicts}
+            priorities={priorities}
+            onToast={showToast}
+          />
+        </div>
       </div>
 
       <header className="mt-4 print:mt-0">
@@ -220,6 +241,14 @@ export function CompareScreen({ category }: { category: Category }) {
             </div>
           </div>
           <PillarBreakdown category={category} scored={scored} colors={colors} />
+        </Disclosure>
+
+        <Disclosure
+          title="Price history"
+          icon="TrendingUp"
+          summary="Launch price and every correction since"
+        >
+          <PriceHistoryPanel scored={scored} />
         </Disclosure>
 
         {verdicts.length > 0 && (

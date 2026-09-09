@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react'
 import { getCategory } from '@/data'
 import { CatalogueProvider } from '@/data/store/CatalogueProvider'
+import { LibraryProvider, useLibrary } from '@/data/store/LibraryProvider'
 import { ProfileProvider } from '@/personalisation/ProfileProvider'
 import { AppStateProvider, useAppState } from '@/hooks/useAppState'
 import { AppShell } from '@/components/layout/AppShell'
@@ -46,16 +48,28 @@ function Router() {
   )
 }
 
+/**
+ * The catalogue reports price corrections into PRICE_HISTORY, so it has to sit
+ * inside the library rather than outside it. This bridge is the only reason
+ * the provider order is Library → Catalogue and not the other way round.
+ */
+function CatalogueBridge({ children }: { children: ReactNode }) {
+  const { trackPrice } = useLibrary()
+  return <CatalogueProvider onPriceChanged={trackPrice}>{children}</CatalogueProvider>
+}
+
 export default function App() {
   return (
-    <CatalogueProvider>
-      <ProfileProvider>
-        <AppStateProvider>
-          <AppShell>
-            <Router />
-          </AppShell>
-        </AppStateProvider>
-      </ProfileProvider>
-    </CatalogueProvider>
+    <LibraryProvider>
+      <CatalogueBridge>
+        <ProfileProvider>
+          <AppStateProvider>
+            <AppShell>
+              <Router />
+            </AppShell>
+          </AppStateProvider>
+        </ProfileProvider>
+      </CatalogueBridge>
+    </LibraryProvider>
   )
 }
