@@ -3,103 +3,90 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ===========================================================================
-   TechSpec design system — "warm editorial"
+   TechSpec design system
 
-   The first iteration was a dark instrument panel: correct for a data tool,
-   cold for a consumer one. This language keeps the rigour and warms the room.
-   Paper-white ground, ink-black type, a serif for the things people read and
-   a sans for the things people operate. Jade carries the brand; gold marks a
-   winner, which is what gold has always meant.
+   Deliberately quiet. This is a tool for reading numbers, so the interface
+   should recede: neutral greys, one accent, standard radii, a single system
+   sans. No display serif, no textures, no glows — the data is the interest.
    =========================================================================== */
 
 :root,
 .light {
-  --ts-paper: #fdfbf7;
-  --ts-paper-deep: #f6f1e8;
+  --ts-bg: #f7f8f9;
   --ts-surface: #ffffff;
-  --ts-surface-2: #f8f5ef;
-  --ts-surface-3: #efeae0;
-  --ts-line: #e7e1d5;
-  --ts-line-strong: #cfc5b3;
-  --ts-ink: #1b1916;
-  --ts-muted: #57524a;
-  --ts-faint: #6b6455;
+  --ts-surface-2: #f4f5f7;
+  --ts-surface-3: #e9ebee;
+  --ts-line: #e3e5e9;
+  --ts-line-strong: #c6cad1;
+  --ts-ink: #15171c;
+  --ts-muted: #565c66;
+  --ts-faint: #6a707a;
 
-  --ts-brand: #0d7c6b;
-  --ts-brand-hover: #0a6558;
-  --ts-brand-soft: #dff0ec;
-  --ts-brand-text: #0a6153;
+  --ts-brand: #2563eb;
+  --ts-brand-hover: #1d4ed8;
+  --ts-brand-soft: #eaf0fe;
+  --ts-brand-text: #1d4ed8;
 
-  --ts-best: #96650b;
-  --ts-best-soft: #fbf0d5;
-  --ts-warn: #a4560a;
-  --ts-danger: #b3123a;
-  --ts-danger-soft: #fdeaee;
+  --ts-best: #047857;
+  --ts-best-soft: #e7f5ef;
+  --ts-warn: #a15c07;
+  --ts-danger: #c62828;
+  --ts-danger-soft: #fdeded;
 
-  --ts-shadow-sm: 0 1px 2px rgb(28 24 18 / 0.06);
-  --ts-shadow: 0 1px 2px rgb(28 24 18 / 0.05), 0 10px 24px -14px rgb(28 24 18 / 0.22);
-  --ts-shadow-lg: 0 2px 6px rgb(28 24 18 / 0.06), 0 28px 56px -24px rgb(28 24 18 / 0.28);
-  --ts-ring: rgb(13 124 107 / 0.28);
-
-  --ts-grid: rgb(28 24 18 / 0.045);
-  --ts-glow: rgb(13 124 107 / 0.18);
+  --ts-shadow-sm: 0 1px 2px rgb(16 18 22 / 0.06);
+  --ts-shadow: 0 1px 3px rgb(16 18 22 / 0.08);
+  --ts-shadow-lg: 0 4px 6px -2px rgb(16 18 22 / 0.06), 0 12px 28px -8px rgb(16 18 22 / 0.18);
   color-scheme: light;
 }
 
 .dark {
-  --ts-paper: #14120f;
-  --ts-paper-deep: #100e0c;
-  --ts-surface: #1c1a16;
-  --ts-surface-2: #24211b;
-  --ts-surface-3: #2f2b23;
-  --ts-line: #322d25;
-  --ts-line-strong: #4c453a;
-  --ts-ink: #f6f2ea;
-  --ts-muted: #b8afa0;
-  --ts-faint: #9c9484;
+  --ts-bg: #0b0c0e;
+  --ts-surface: #131519;
+  --ts-surface-2: #1a1d22;
+  --ts-surface-3: #22262c;
+  --ts-line: #24282f;
+  --ts-line-strong: #383e47;
+  --ts-ink: #e8eaee;
+  --ts-muted: #9ba2ad;
+  --ts-faint: #8b929d;
 
-  --ts-brand: #2dd4bf;
-  --ts-brand-hover: #5eead4;
-  --ts-brand-soft: #0d322d;
-  --ts-brand-text: #5eead4;
+  --ts-brand: #4b8bf5;
+  --ts-brand-hover: #6ba1f7;
+  --ts-brand-soft: #16233a;
+  --ts-brand-text: #7fb0f8;
 
-  --ts-best: #fbbf24;
-  --ts-best-soft: #322709;
-  --ts-warn: #fbbf24;
-  --ts-danger: #fb7185;
-  --ts-danger-soft: #3a1720;
+  --ts-best: #34d399;
+  --ts-best-soft: #0d2b22;
+  --ts-warn: #d99b34;
+  --ts-danger: #f2777a;
+  --ts-danger-soft: #2e1618;
 
   --ts-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-  --ts-shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 24px -14px rgb(0 0 0 / 0.8);
-  --ts-shadow-lg: 0 2px 6px rgb(0 0 0 / 0.5), 0 28px 56px -24px rgb(0 0 0 / 0.9);
-  --ts-ring: rgb(45 212 191 / 0.35);
-
-  --ts-grid: rgb(255 255 255 / 0.04);
-  --ts-glow: rgb(45 212 191 / 0.16);
+  --ts-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+  --ts-shadow-lg: 0 4px 6px -2px rgb(0 0 0 / 0.4), 0 12px 28px -8px rgb(0 0 0 / 0.7);
   color-scheme: dark;
 }
 
 /* Chart series. Colour is never the only channel — charts also vary dash
-   pattern and marker shape — but these stay distinguishable regardless. */
+   pattern and marker shape — but these stay distinguishable. */
 :root,
 .light {
-  --series-0: #0d7c6b;
-  --series-1: #a4560a;
-  --series-2: #5b21b6;
-  --series-3: #b3123a;
-  --series-4: #0369a1;
+  --series-0: #2563eb;
+  --series-1: #047857;
+  --series-2: #a15c07;
+  --series-3: #7c3aed;
+  --series-4: #be123c;
 }
 .dark {
-  --series-0: #2dd4bf;
-  --series-1: #fbbf24;
-  --series-2: #a78bfa;
-  --series-3: #fb7185;
-  --series-4: #38bdf8;
+  --series-0: #60a5fa;
+  --series-1: #34d399;
+  --series-2: #fbbf24;
+  --series-3: #a78bfa;
+  --series-4: #fb7185;
 }
 
 @theme inline {
-  --color-paper: var(--ts-paper);
-  --color-paper-deep: var(--ts-paper-deep);
+  --color-bg: var(--ts-bg);
   --color-surface: var(--ts-surface);
   --color-surface-2: var(--ts-surface-2);
   --color-surface-3: var(--ts-surface-3);
@@ -123,21 +110,11 @@
   --shadow-float: var(--ts-shadow-lg);
 
   --font-sans:
-    'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
-  --font-display:
-    'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia,
-    'Times New Roman', serif;
-  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Code', Menlo, monospace;
-
-  --radius-xs: 0.5rem;
-  --radius-sm: 0.75rem;
-  --radius-md: 1rem;
-  --radius-lg: 1.375rem;
-  --radius-xl: 1.75rem;
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 @layer base {
@@ -147,16 +124,16 @@
 
   html {
     -webkit-text-size-adjust: 100%;
-    scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--ts-paper);
+    background-color: var(--ts-bg);
     color: var(--ts-ink);
     font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
   }
 
@@ -164,13 +141,18 @@
   table,
   .tnum {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.011em;
   }
 
   :focus-visible {
     outline: 2px solid var(--ts-brand);
     outline-offset: 2px;
-    border-radius: 6px;
+    border-radius: 4px;
   }
 
   ::selection {
@@ -179,8 +161,8 @@
   }
 
   ::-webkit-scrollbar {
-    width: 11px;
-    height: 11px;
+    width: 10px;
+    height: 10px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
@@ -191,58 +173,13 @@
     border: 3px solid transparent;
     background-clip: content-box;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--ts-faint);
-    background-clip: content-box;
-  }
 }
 
 @layer components {
-  .ts-display {
-    font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.015em;
-  }
-
   .ts-card {
     background-color: var(--ts-surface);
     border: 1px solid var(--ts-line);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--ts-shadow-sm);
-  }
-
-  .ts-card-raised {
-    background-color: var(--ts-surface);
-    border: 1px solid var(--ts-line);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--ts-shadow);
-  }
-
-  /* Warm paper texture behind the hero. Two very cheap layers: a hairline
-     grid for the technical register, and a soft glow for the warmth. */
-  .ts-texture {
-    background-image:
-      linear-gradient(to right, var(--ts-grid) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--ts-grid) 1px, transparent 1px);
-    background-size: 56px 56px;
-    background-position: center;
-    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 100%);
-    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 100%);
-  }
-
-  .ts-glow {
-    background: radial-gradient(ellipse 60% 50% at 50% 0%, var(--ts-glow), transparent 70%);
-  }
-
-  .ts-divider {
-    background-image: linear-gradient(
-      to right,
-      transparent,
-      var(--ts-line-strong) 15%,
-      var(--ts-line-strong) 85%,
-      transparent
-    );
-    height: 1px;
+    border-radius: 10px;
   }
 }
 
@@ -272,22 +209,12 @@
     animation: ts-shimmer 1.4s ease-in-out infinite;
   }
 
-  .ts-rise {
-    animation: ts-rise 0.42s var(--ease-out-quint) both;
-  }
-
   .ts-fade {
-    animation: ts-fade 0.28s ease-out both;
+    animation: ts-fade 0.16s ease-out both;
   }
 
   .ts-pop {
-    animation: ts-pop 0.32s var(--ease-spring) both;
-  }
-
-  /* Stagger helper for feed cards — set --i on each child. */
-  .ts-stagger > * {
-    animation: ts-rise 0.45s var(--ease-out-quint) both;
-    animation-delay: calc(var(--i, 0) * 45ms);
+    animation: ts-pop 0.16s ease-out both;
   }
 }
 
@@ -297,17 +224,6 @@
   }
   100% {
     background-position: 0 50%;
-  }
-}
-
-@keyframes ts-rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
   }
 }
 
@@ -323,7 +239,7 @@
 @keyframes ts-pop {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
@@ -338,12 +254,11 @@
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
   }
 }
 
 /* ---------------------------------------------------------------------------
-   Range inputs — priority sliders and the dual price filter.
+   Range inputs
 --------------------------------------------------------------------------- */
 .ts-range {
   -webkit-appearance: none;
@@ -354,12 +269,12 @@
 }
 
 .ts-range::-webkit-slider-runnable-track {
-  height: 6px;
+  height: 4px;
   border-radius: 999px;
   background: var(--ts-surface-3);
 }
 .ts-range::-moz-range-track {
-  height: 6px;
+  height: 4px;
   border-radius: 999px;
   background: var(--ts-surface-3);
 }
@@ -367,36 +282,27 @@
 .ts-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  height: 18px;
-  width: 18px;
-  margin-top: -6px;
+  height: 14px;
+  width: 14px;
+  margin-top: -5px;
   border-radius: 999px;
-  background: var(--ts-surface);
-  border: 2px solid var(--ts-brand);
-  box-shadow: 0 1px 5px rgb(0 0 0 / 0.22);
-  transition: transform 0.14s var(--ease-spring);
+  background: var(--ts-brand);
+  border: 2px solid var(--ts-surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
 }
 .ts-range::-moz-range-thumb {
-  height: 18px;
-  width: 18px;
+  height: 14px;
+  width: 14px;
   border-radius: 999px;
-  background: var(--ts-surface);
-  border: 2px solid var(--ts-brand);
-  box-shadow: 0 1px 5px rgb(0 0 0 / 0.22);
-}
-.ts-range:hover::-webkit-slider-thumb {
-  transform: scale(1.1);
-}
-.ts-range:active::-webkit-slider-thumb {
-  transform: scale(1.18);
+  background: var(--ts-brand);
+  border: 2px solid var(--ts-surface);
 }
 
-/* Two thumbs on one track: inputs stack, only the thumbs are hit-testable. */
 .ts-range-stacked {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  height: 18px;
+  height: 14px;
 }
 .ts-range-stacked::-webkit-slider-runnable-track {
   background: transparent;
@@ -412,12 +318,12 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Print — a comparison doubles as a shareable PDF.
+   Print
 --------------------------------------------------------------------------- */
 @media print {
   :root,
   .dark {
-    --ts-paper: #ffffff;
+    --ts-bg: #ffffff;
     --ts-surface: #ffffff;
     --ts-surface-2: #ffffff;
     --ts-surface-3: #f4f4f5;
@@ -440,12 +346,16 @@
     page-break-inside: avoid;
   }
 
+  /* Everything collapsed on screen still prints in full. */
+  .ts-print-open {
+    display: block !important;
+  }
+
   body {
     background: #fff !important;
   }
 
-  .ts-card,
-  .ts-card-raised {
+  .ts-card {
     box-shadow: none !important;
     border: 1px solid #d4d4d8 !important;
   }
