@@ -21,10 +21,10 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
 }
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
-  xs: 'h-7 px-2.5 text-[12px] gap-1 rounded-lg',
-  sm: 'h-9 px-3.5 text-[13px] gap-1.5 rounded-xl',
-  md: 'h-11 px-4.5 text-[14px] gap-2 rounded-xl',
-  lg: 'h-13 px-6 text-[15px] gap-2 rounded-2xl',
+  xs: 'h-6 px-2 text-[11.5px] gap-1 rounded-md',
+  sm: 'h-8 px-2.5 text-[12.5px] gap-1.5 rounded-md',
+  md: 'h-9 px-3 text-[13px] gap-1.5 rounded-md',
+  lg: 'h-10 px-4 text-[13.5px] gap-2 rounded-md',
 }
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -55,8 +55,8 @@ export function Button({
       disabled={disabled || loading}
       className={cn(
         'inline-flex items-center justify-center font-medium whitespace-nowrap',
-        'transition-all duration-150 ease-out',
-        'active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100',
+        'transition-colors duration-100',
+        'disabled:cursor-not-allowed',
         BUTTON_SIZES[size],
         BUTTON_VARIANTS[variant],
         block && 'w-full',
@@ -94,9 +94,9 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={cn(
-        'inline-flex items-center justify-center rounded-xl text-muted',
-        'transition-colors hover:bg-surface-2 hover:text-ink active:scale-95',
-        size === 'sm' ? 'h-8 w-8' : 'h-10 w-10',
+        'inline-flex items-center justify-center rounded-md text-muted',
+        'transition-colors hover:bg-surface-2 hover:text-ink',
+        size === 'sm' ? 'h-7 w-7' : 'h-9 w-9',
         className,
       )}
       {...props}
@@ -120,8 +120,8 @@ export function Chip({ active, icon, tone = 'default', className, children, ...p
       type="button"
       aria-pressed={active}
       className={cn(
-        'inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium',
-        'transition-all duration-150 active:scale-[0.97]',
+        'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12.5px] font-medium',
+        'transition-colors duration-100',
         active
           ? tone === 'solid'
             ? 'border-brand bg-brand text-white shadow-soft'
@@ -160,8 +160,8 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5',
-        'text-[11px] font-semibold tracking-wide',
+        'inline-flex items-center gap-1 rounded border px-1.5 py-px',
+        'text-[10.5px] font-semibold tracking-wide',
         tones[tone],
         className,
       )}
@@ -194,7 +194,7 @@ export function SegmentedControl<T extends string>({
       role="group"
       aria-label={label}
       className={cn(
-        'inline-flex items-center gap-0.5 rounded-2xl border border-line bg-surface-2 p-1',
+        'inline-flex items-center gap-0.5 rounded-md border border-line bg-surface-2 p-0.5',
         className,
       )}
     >
@@ -207,8 +207,8 @@ export function SegmentedControl<T extends string>({
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-xl font-medium transition-all duration-150',
-              size === 'sm' ? 'h-7 px-3 text-[12.5px]' : 'h-9 px-3.5 text-[13px]',
+              'inline-flex items-center gap-1.5 rounded font-medium transition-colors duration-100',
+              size === 'sm' ? 'h-6 px-2.5 text-[12px]' : 'h-7 px-3 text-[12.5px]',
               active
                 ? 'bg-surface text-ink shadow-soft'
                 : 'text-muted hover:text-ink',
@@ -246,14 +246,14 @@ export function Switch({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={cn(
-          'relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-200',
+          'relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-150',
           checked ? 'border-brand bg-brand' : 'border-line-strong bg-surface-3',
         )}
       >
         <span
           className={cn(
-            'absolute top-[3px] h-4 w-4 rounded-full bg-white shadow-soft transition-transform duration-200',
-            checked ? 'translate-x-[19px]' : 'translate-x-[3px]',
+            'absolute top-[2px] h-3.5 w-3.5 rounded-full bg-white transition-transform duration-150',
+            checked ? 'translate-x-[18px]' : 'translate-x-[2px]',
           )}
         />
       </button>
@@ -290,7 +290,7 @@ export function Tooltip({ content, children }: { content: ReactNode; children: R
           role="tooltip"
           className={cn(
             'ts-pop pointer-events-none absolute bottom-full z-50 mb-2 w-max max-w-[250px]',
-            'rounded-xl border border-line-strong bg-surface px-3 py-2',
+            'rounded-md border border-line-strong bg-surface px-2.5 py-1.5',
             'text-[12px] leading-snug font-normal text-ink shadow-float',
             flipLeft ? 'right-0' : 'left-0',
           )}
@@ -338,11 +338,11 @@ export function EmptyState({
   className?: string
 }) {
   return (
-    <div className={cn('flex flex-col items-center justify-center px-6 py-20 text-center', className)}>
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-line bg-surface-2">
-        <Icon name={icon} size={24} className="text-faint" />
+    <div className={cn('flex flex-col items-center justify-center px-6 py-14 text-center', className)}>
+      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-line bg-surface-2">
+        <Icon name={icon} size={18} className="text-faint" />
       </div>
-      <h3 className="ts-display text-[20px] text-ink">{title}</h3>
+      <h3 className="text-[14.5px] font-semibold text-ink">{title}</h3>
       {description && (
         <p className="mt-2 max-w-sm text-[13.5px] leading-relaxed text-muted">{description}</p>
       )}
@@ -410,7 +410,7 @@ export function Field({
 
 export const inputClass = (invalid?: boolean) =>
   cn(
-    'h-11 w-full rounded-xl border bg-surface px-3.5 text-[14px] text-ink',
+    'h-9 w-full rounded-md border bg-surface px-2.5 text-[13px] text-ink',
     'transition-colors placeholder:text-faint focus:outline-none',
     invalid
       ? 'border-danger focus:border-danger'
@@ -469,13 +469,13 @@ export function Modal({
         aria-labelledby={titleId}
         className={cn(
           'ts-pop relative flex max-h-[90dvh] w-full flex-col overflow-hidden bg-surface shadow-float',
-          'rounded-t-3xl sm:rounded-3xl',
+          'rounded-t-xl sm:rounded-xl',
           size === 'lg' ? 'sm:max-w-3xl' : 'sm:max-w-lg',
         )}
       >
         <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div className="min-w-0">
-            <h2 id={titleId} className="ts-display text-[19px] text-ink">
+            <h2 id={titleId} className="text-[15px] font-semibold text-ink">
               {title}
             </h2>
             {description && <p className="mt-1 text-[13px] text-muted">{description}</p>}
@@ -492,5 +492,67 @@ export function Modal({
         )}
       </div>
     </div>
+  )
+}
+
+/* ---------------------------------------------------------- Disclosure */
+
+/**
+ * A collapsible section.
+ *
+ * The comparison page has a lot to say, but not all at once. Heavy sections
+ * start closed with a one-line summary so the page opens calm; print forces
+ * everything open via `ts-print-open`.
+ */
+export function Disclosure({
+  title,
+  icon,
+  summary,
+  defaultOpen = false,
+  children,
+  id,
+}: {
+  title: string
+  icon?: string
+  /** One-line gist shown while collapsed. */
+  summary?: ReactNode
+  defaultOpen?: boolean
+  children: ReactNode
+  id?: string
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  const panelId = useId()
+
+  return (
+    <section id={id} className="ts-card ts-print-block scroll-mt-16 overflow-hidden">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        className="ts-no-print flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-surface-2"
+      >
+        {icon && <Icon name={icon} size={15} className="shrink-0 text-faint" />}
+        <span className="text-[13.5px] font-semibold text-ink">{title}</span>
+        {!open && summary && (
+          <span className="min-w-0 flex-1 truncate text-[12.5px] text-muted">{summary}</span>
+        )}
+        <span className="ml-auto shrink-0 pl-2">
+          <Icon
+            name="ChevronDown"
+            size={15}
+            className={cn('text-faint transition-transform duration-150', open && 'rotate-180')}
+          />
+        </span>
+      </button>
+
+      {/* Printed output always shows the full section. */}
+      <div
+        id={panelId}
+        className={cn('border-t border-line px-4 py-4', !open && 'hidden ts-print-open')}
+      >
+        {children}
+      </div>
+    </section>
   )
 }
