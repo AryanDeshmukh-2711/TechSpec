@@ -24,6 +24,8 @@ npm run dev
 | Price | A column in the table | A Pareto **value frontier** — shows what's genuinely worth its price |
 | Sharing | A link to a page | A link that carries **your weights**, so the recipient sees your priorities |
 | Personas | — | Six independent buyer weightings, one tap to load |
+| Auditability | Trust the number | **Open any pillar** and see the specs, weights and points behind it |
+| Hard requirements | Filters, at browse time | **Must-haves** that disqualify at decision time, and say why |
 
 The engine is the product. `src/lib/scoring.ts` is ~250 lines and fully inspectable — nothing
 is hidden behind a proprietary index.
@@ -56,6 +58,8 @@ and a sticky tray that always shows five slots so the 2–5 rule needs no instru
 | **Priority panel** | "…but what if I care about battery instead?" |
 | **Radar chart** | Shape of each product's capability across all pillars |
 | **Value scatter** | Is it worth the money? (with the Pareto frontier drawn) |
+| **Must-haves** | What's disqualified outright, and on which requirement |
+| **Score drill-down** | Where did that pillar number actually come from? |
 | **Persona grid** | Who is each of these actually *for*? |
 | **Head to head** | Which specs produced each product's lead |
 | **Spec sheet** | The full evidence, grouped and highlighted |
@@ -98,7 +102,12 @@ src/
     ├── picker/                 PickerScreen · ProductCard (+ skeleton) · CompareTray
     └── compare/                CompareScreen · VerdictPanel · PriorityPanel · ProductColumns
                                 PersonaGrid · HeadToHead · SpecTable · ExportBar
+                                PillarBreakdown · DealBreakers · AddProduct
 ```
+
+Tests sit next to what they cover (`scoring.test.ts`, `format.test.ts`,
+`urlState.test.ts`, `data/catalogue.test.ts`), with a synthetic fixture category
+in `lib/__fixtures__/`.
 
 ★ = the file worth reading first.
 
@@ -124,6 +133,16 @@ accent. No licensing questions, no broken images, no inconsistent framing.
    from winning purely by being cheap — it rewards efficiency, not frugality.
 5. **Value frontier** = the Pareto-optimal set: products nothing else beats on price *and*
    score.
+
+Any of it can be audited: `explainPillar()` decomposes a pillar into its member
+specs, each one's weight, and the points it contributed — and the points always
+sum back to the pillar score. The UI exposes this directly, so no number in the
+product has to be taken on trust.
+
+Must-haves are applied separately via `applyDealBreakers()`. They reuse the
+category's own quick-filter predicates, gate the ranking and every verdict, and
+never remove a product from the spec table — seeing *why* something is out
+matters as much as the shortlist.
 
 The overall score is a **match score, not a quality grade**. 100 would mean topping every
 weighted pillar across the whole category — including price, which flagships never win.
@@ -175,13 +194,38 @@ Add one file under `src/data/categories/`, exporting a `Category` (spec schema, 
 personas, quick filters) and a `Product[]`, then register it in `src/data/index.ts`. No
 component changes — the picker, scoring engine, charts and spec table are all category-agnostic.
 
+## Testing
+
+`npm test` runs the Vitest suite. Two kinds of test carry their weight here:
+
+**Engine tests** run against a synthetic fixture category, so adding a phone can
+never break them and every expected number is derivable by hand. They pin the
+behaviours the product promises — normalisation is against the catalogue not the
+selection, lower-is-better inverts, a universally-shared spec never declares a
+winner, missing values re-normalise rather than penalise, moving a slider can
+change the winner, and a dominated product falls off the value frontier. Several
+are regression guards for bugs found in review (a persona explaining itself with
+a pillar it barely weights; `2,025` rendered as a year).
+
+**Data-integrity tests** run against all six real catalogues. The realistic
+failure mode for hand-authored data is a typo — a pillar weighting a spec key
+that no longer exists, an enum value missing from its own ordering, a persona
+pointing at a renamed pillar. None of that throws; it silently scores zero and
+quietly corrupts a verdict. These make the data validate itself, so a bad edit
+fails CI instead of shipping a wrong recommendation.
+
+CI (`.github/workflows/ci.yml`) runs typecheck, tests and a production build on
+every push and pull request against `main`.
+
 ## Scripts
 
 | | |
 |---|---|
 | `npm run dev` | Dev server on :5173 |
-| `npm run build` | Typecheck + production build |
+| `npm test` | Vitest, single run |
+| `npm run test:watch` | Vitest in watch mode |
+| `npm run build` | Typecheck + tests + production build |
 | `npm run preview` | Serve the production build |
 | `npm run typecheck` | `tsc --noEmit` |
 
-Stack: React 19 · TypeScript (strict) · Vite 6 · Tailwind CSS v4 · lucide-react.
+Stack: React 19 · TypeScript (strict) · Vite 6 · Vitest · Tailwind CSS v4 · lucide-react.
