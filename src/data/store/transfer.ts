@@ -126,6 +126,7 @@ export function parseTransfer(
     // --- edits to seed devices ---------------------------------------
     if (typeof overlayRaw.edits === 'object' && overlayRaw.edits !== null) {
       const seedSet = new Set(seedIds)
+      const nowYear = new Date().getFullYear()
       for (const [id, patch] of Object.entries(overlayRaw.edits as Record<string, unknown>)) {
         if (!seedSet.has(id)) {
           report.issues.push({
@@ -136,7 +137,73 @@ export function parseTransfer(
           continue
         }
         if (typeof patch !== 'object' || patch === null) continue
-        overlay.edits[id] = patch as CatalogueOverlay['edits'][string]
+
+        const rawPatch = patch as Record<string, unknown>
+        const next: CatalogueOverlay['edits'][string] = {}
+        const issues: ValidationIssue[] = []
+        const push = (field: string, message: string) => issues.push({ field, message })
+
+        if ('name' in rawPatch) typeof rawPatch.name === 'string' ? (next.name = rawPatch.name.trim()) : push('name', 'Name must be text')
+        if ('brand' in rawPatch) typeof rawPatch.brand === 'string' ? (next.brand = rawPatch.brand.trim()) : push('brand', 'Brand must be text')
+        if ('tagline' in rawPatch) typeof rawPatch.tagline === 'string' ? (next.tagline = rawPatch.tagline) : push('tagline', 'Tagline must be text')
+        if ('accent' in rawPatch) typeof rawPatch.accent === 'string' && /^#[0-9a-fA-F]{6}$/.test(rawPatch.accent) ? (next.accent = rawPatch.accent) : push('accent', 'Accent must be a hex colour like #7c5cff')
+
+        if ('price' in rawPatch) typeof rawPatch.price === 'number' && Number.isFinite(rawPatch.price) && rawPatch.price > 0 ? (next.price = rawPatch.price) : push('price', 'Price must be a number above zero')
+        if ('releaseYear' in rawPatch) typeof rawPatch.releaseYear === 'number' && Number.isInteger(rawPatch.releaseYear) && rawPatch.releaseYear >= 1990 && rawPatch.releaseYear <= nowYear + 2 ? (next.releaseYear = rawPatch.releaseYear) : push('releaseYear', `Release year must be between 1990 and ${nowYear + 2}`)
+        if ('rating' in rawPatch) typeof rawPatch.rating === 'number' && Number.isFinite(rawPatch.rating) && rawPatch.rating >= 0 && rawPatch.rating <= 5 ? (next.rating = rawPatch.rating) : push('rating', 'Rating must be between 0 and 5')
+
+        if ('specs' in rawPatch) {
+          if (typeof rawPatch.specs !== 'object' || rawPatch.specs === null) {
+            push('specs', 'Specs must be an object')
+          } else {
+            const specsNext: Record<string, SpecValue> = {}
+            for (const [key, value] of Object.entries(rawPatch.specs as Record<string, unknown>)) {
+              if (key === 'price' || key === 'releaseYear') continue
+              const def = category.specs.find((s) => s.key === key)
+              if (!def) {
+                push(`specs.${key}`, `Unknown spec "${key}"`)
+                continue
+              }
+              if (value === null) {
+                specsNext[key] = null
+                continue
+              }
+              switch (def.kind) {
+                case 'number':
+                  if (typeof value !== 'number' || !Number.isFinite(value)) push(`specs.${key}`, `${def.label} must be a number`)
+                  else if (value < 0) push(`specs.${key}`, `${def.label} cannot be negative`)
+                  else specsNext[key] = value
+                  break
+                case 'bool':
+                  if (typeof value !== 'boolean') push(`specs.${key}`, `${def.label} must be yes or no`)
+                  else specsNext[key] = value
+                  break
+                case 'enum':
+                  if (typeof value !== 'string') push(`specs.${key}`, `${def.label} must be one of the listed options`)
+                  else if (def.enumOrder && !def.enumOrder.includes(value)) push(`specs.${key}`, `${def.label}: "${value}" is not a known option`)
+                  else specsNext[key] = value
+                  break
+                case 'text':
+                  if (typeof value !== 'string') push(`specs.${key}`, `${def.label} must be text`)
+                  else specsNext[key] = value
+                  break
+                default:
+                  break
+              }
+            }
+            if (Object.keys(specsNext).length) next.specs = specsNext
+          }
+        }
+
+        if (issues.length) {
+          for (const issue of issues) {
+            report.issues.push({ ...issue, category: category.label, device: id })
+          }
+          continue
+        }
+
+        if (Object.keys(next).length === 0) continue
+        overlay.edits[id] = next
         report.edited += 1
       }
     }
