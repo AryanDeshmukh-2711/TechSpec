@@ -98,7 +98,7 @@ src/
 │   │   └── remoteSource.ts     Pluggable API seam (unconfigured by default)
 │   └── categories/             One file per category: spec schema + pillars + personas
 │       ├── mobiles.ts          16 products · 47 specs · 7 pillars
-│       ├── laptops.ts          14 products · 38 specs · 7 pillars
+│       ├── laptops.ts          29 products · 38 specs · 7 pillars
 │       ├── tablets.ts           8 products · 32 specs
 │       ├── smartwatches.ts      8 products · 34 specs
 │       ├── headphones.ts       10 products · 29 specs
@@ -218,21 +218,6 @@ silicon. Verify against the retailer before buying.
 
 ---
 
-## Design system
-
-Tokens live in `src/index.css` as semantic CSS variables mapped onto Tailwind v4 utilities via
-`@theme inline`, so `bg-surface` / `text-muted` / `border-line` flip with the theme.
-
-- **Dark-first**, with a light theme and no flash on load (pre-paint script in `index.html`).
-- **Five-slot series palette** — every product keeps its colour across the tray, column
-  header, radar, scatter, bars and head-to-head.
-- **Never colour alone** — radar series also carry distinct dash patterns and marker shapes;
-  best-in-class cells get a check icon and a left rule, not just a green tint.
-- **Tabular numerals** everywhere numbers stack in columns.
-- All text tiers pass **WCAG AA (≥4.5:1)** in both themes; verified at 5.5/7.4/16.2 (dark) and
-  4.6/5.9/18.7 (light) for faint/muted/ink.
-- `prefers-reduced-motion` honoured; skip link, focus rings, ARIA roles on charts and meters.
-
 ## Responsive behaviour
 
 The spec table is not one layout squeezed down. Above `lg` it's a column grid with a sticky
@@ -291,16 +276,23 @@ every push and pull request against `main`.
 
 ## Design
 
-Warm editorial, not instrument panel: paper-white ground, ink type, a serif for the things
-people read and a sans for the things they operate. Jade carries the brand; gold marks a
-winner, which is what gold has always meant.
+Deliberately quiet. This is a tool for reading numbers, so the interface recedes: neutral
+greys, one accent, standard radii, a single system sans. No display face, no textures, no
+glows — the data is the interest.
 
+- **A four-control header.** Where you are, search, the one action that matters now, and a
+  menu for everything else. Category navigation lives on the page and in the palette, not in a
+  bar that is on screen permanently.
+- **Progressive disclosure.** A comparison opens with the verdict, the ranking and your
+  priority sliders. Charts, personas, head-to-head and the full spec sheet start collapsed
+  behind one-line summaries; print forces every one of them open.
 - **⌘K everywhere** — jump to a category, find any device across every catalogue, run an action.
 - **Light-first**, with a full dark theme and no flash on load.
-- **Never colour alone** — chart series carry dash patterns and marker shapes too; a
+- **Five-slot series palette** — every device keeps its colour across the tray, column header,
+  radar, scatter, bars and head-to-head.
+- **Never colour alone** — radar series also carry dash patterns and marker shapes; a
   best-in-class cell gets an icon and a rule, not just a tint.
-- All text tiers pass **WCAG AA** in both themes — measured 5.9 / 7.8 / 17.5 (light) and
-  5.8 / 8.0 / 15.6 (dark) for faint / muted / ink, with brand, best and danger all ≥ 5.0.
-- `prefers-reduced-motion` honoured; skip link, focus rings, ARIA roles on charts and dialogs.
+- All text tiers pass **WCAG AA** in both themes — measured 5.0 / 6.7 / 17.9 (light) and
+  5.8 / 7.1 / 15.2 (dark) for faint / muted / ink, with brand, best and danger all ≥ 5.0.
+- `prefers-reduced-motion` honoured; skip link, focus rings, ARIA on charts and dialogs.
 
-Stack: React 19 · TypeScript (strict) · Vite 6 · Vitest · Tailwind CSS v4 · lucide-react.
