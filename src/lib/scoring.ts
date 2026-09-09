@@ -351,3 +351,118 @@ export function pillarDeltas(
 export function defaultPriorities(category: Category): Record<string, number> {
   return Object.fromEntries(category.pillars.map((p) => [p.id, 5]))
 }
+
+/* ------------------------------------------------------- score transparency */
+
+export interface SpecContribution {
+  specKey: string
+  label: string
+  /** Weight this spec carries within the pillar as declared, 0–1. */
+  share: number
+  perProduct: Record<
+    string,
+    {
+      raw: SpecValue
+      norm: number | null
+      /**
+       * Points this spec puts into the pillar for this product, after
+       * re-normalising around any specs the product doesn't report. Summing
+       * these across a product reproduces its pillar score exactly.
+       */
+      points: number
+    }
+  >
+}
+
+/**
+ * Decompose a pillar score into the specs that produced it.
+ *
+ * This is the honesty guarantee made visible: any pillar score can be opened
+ * up and audited down to the individual spec, its weight and the points it
+ * contributed. The points column sums to the pillar score.
+ */
+export function explainPillar(
+  category: Category,
+  pillarId: string,
+  scored: ScoredProduct[],
+): SpecContribution[] {
+  const pillar = category.pillars.find((p) => p.id === pillarId)
+  if (!pillar) return []
+
+  const specByKey = new Map(category.specs.map((s) => [s.key, s]))
+  const declaredTotal = Object.values(pillar.weights).reduce((a, b) => a + b, 0) || 1
+
+  // Each product re-normalises around the specs it actually reports, so the
+  // effective weight of a spec differs per product.
+  const effectiveTotals = new Map<string, number>()
+  for (const item of scored) {
+    let total = 0
+    for (const [key, weight] of Object.entries(pillar.weights)) {
+      if (item.specs[key]?.norm !== null && item.specs[key]?.norm !== undefined) total += weight
+    }
+    effectiveTotals.set(item.product.id, total)
+  }
+
+  return Object.entries(pillar.weights)
+    .sort(([, a], [, b]) => b - a)
+    .map(([key, weight]) => {
+      const def = specByKey.get(key)
+      const perProduct: SpecContribution['perProduct'] = {}
+
+      for (const item of scored) {
+        const entry = item.specs[key]
+        const norm = entry?.norm ?? null
+        const total = effectiveTotals.get(item.product.id) ?? 0
+        perProduct[item.product.id] = {
+          raw: entry?.raw ?? null,
+          norm,
+          points: norm === null || total === 0 ? 0 : round((norm * weight) / total),
+        }
+      }
+
+      return {
+        specKey: key,
+        label: def?.label ?? key,
+        share: round(weight / declaredTotal, 3),
+        perProduct,
+      }
+    })
+}
+
+/* ----------------------------------------------------------- deal-breakers */
+
+export interface EligibilityResult {
+  /** Products meeting every active requirement. */
+  eligible: ScoredProduct[]
+  /** Product id → the requirement labels it fails. */
+  failures: Record<string, string[]>
+}
+
+/**
+ * Apply hard requirements to a scored selection.
+ *
+ * Deliberately reuses the category's quick filters: a predicate that is
+ * useful for narrowing a catalogue is exactly the predicate you'd want as a
+ * must-have when deciding. Nothing is removed from the table — a failing
+ * product stays visible and visibly disqualified, because knowing *why*
+ * something is out matters as much as the shortlist.
+ */
+export function applyDealBreakers(
+  category: Category,
+  scored: ScoredProduct[],
+  requirementIds: string[],
+): EligibilityResult {
+  const active = category.quickFilters.filter((q) => requirementIds.includes(q.id))
+  if (!active.length) return { eligible: scored, failures: {} }
+
+  const failures: Record<string, string[]> = {}
+  const eligible: ScoredProduct[] = []
+
+  for (const item of scored) {
+    const failed = active.filter((q) => !q.test(item.product)).map((q) => q.label)
+    if (failed.length) failures[item.product.id] = failed
+    else eligible.push(item)
+  }
+
+  return { eligible, failures }
+}
