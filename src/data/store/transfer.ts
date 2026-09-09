@@ -1,4 +1,4 @@
-import type { Category, CategoryId } from '@/types'
+import type { Category, CategoryId, SpecValue } from '@/types'
 import {
   OVERLAY_VERSION,
   TRANSFER_FORMAT,
