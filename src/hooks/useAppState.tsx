@@ -9,7 +9,9 @@ import {
   type ReactNode,
 } from 'react'
 import type { CategoryId, LoadState, PickerFilters, Product, Screen } from '@/types'
-import { fetchCatalogue, getCategory } from '@/data'
+import { getCategory } from '@/data'
+import { useCatalogue } from '@/data/store/CatalogueProvider'
+import { useProfile } from '@/personalisation/ProfileProvider'
 import { EMPTY_FILTERS } from '@/lib/filters'
 import { defaultPriorities } from '@/lib/scoring'
 import { parseUrl, writeUrl } from '@/lib/urlState'
@@ -17,15 +19,8 @@ import { parseUrl, writeUrl } from '@/lib/urlState'
 export const MAX_SELECTION = 5
 export const MIN_SELECTION = 2
 
-const RECENTS_KEY = 'techspec:recents'
-const MAX_RECENTS = 6
-
-export interface RecentComparison {
-  category: CategoryId
-  ids: string[]
-  names: string[]
-  at: number
-}
+/** `undefined` = editor closed, `null` = creating, `Product` = editing. */
+export type EditorTarget = Product | null | undefined
 
 interface AppStateValue {
   screen: Screen
@@ -35,8 +30,9 @@ interface AppStateValue {
   filters: PickerFilters
   catalogue: Product[]
   loadState: LoadState
-  recents: RecentComparison[]
   toast: string | null
+  selected: Product[]
+  editorTarget: EditorTarget
 
   selectCategory: (id: CategoryId) => void
   toggleProduct: (id: string) => void
@@ -52,82 +48,70 @@ interface AppStateValue {
   goPicker: () => void
   goCompare: () => void
   startMatchup: (category: CategoryId, ids: string[]) => void
-  showToast: (message: string) => void 
-  /** Products in the current selection, in selection order. */
-  selected: Product[]
+  showToast: (message: string) => void
+  openEditorFor: (product: Product | null) => void
+  closeEditor: () => void
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null)
 
-function readRecents(): RecentComparison[] {
-  try {
-    const raw = localStorage.getItem(RECENTS_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as RecentComparison[]).slice(0, MAX_RECENTS) : []
-  } catch {
-    return []
-  }
-}
-
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const initial = useRef(parseUrl()).current
+  const store = useCatalogue()
+  const profile = useProfile()
 
   const [screen, setScreen] = useState<Screen>(initial.screen)
   const [categoryId, setCategoryId] = useState<CategoryId | null>(initial.category)
   const [selection, setSelectionState] = useState<string[]>(initial.selection)
   const [priorities, setPrioritiesState] = useState<Record<string, number>>(initial.priorities)
   const [filters, setFilters] = useState<PickerFilters>(EMPTY_FILTERS)
-  const [catalogue, setCatalogue] = useState<Product[]>([])
-  const [loadState, setLoadState] = useState<LoadState>('idle')
-  const [recents, setRecents] = useState<RecentComparison[]>(() => readRecents())
   const [toast, setToast] = useState<string | null>(null)
+  const [editorTarget, setEditorTarget] = useState<EditorTarget>(undefined)
   const toastTimer = useRef<number | undefined>(undefined)
 
-  /* ------------------------------------------------------- data loading */
+  /* ------------------------------------------------------------- catalogue */
 
-  useEffect(() => {
-    if (!categoryId) {
-      setCatalogue([])
-      setLoadState('idle')
-      return
-    }
-    let cancelled = false
-    setLoadState('loading')
-    fetchCatalogue(categoryId)
-      .then((products) => {
-        if (cancelled) return
-        setCatalogue(products)
-        setLoadState('ready')
-      })
-      .catch(() => {
-        if (!cancelled) setLoadState('error')
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [categoryId])
+  // The catalogue is now resolved synchronously from seed + the user's
+  // overlay, so the only asynchronous step left is reading storage once.
+  const catalogue = useMemo(
+    () => (categoryId ? store.catalogueFor(categoryId) : []),
+    [categoryId, store],
+  )
 
-  /* --------------------------------------------------------- priorities */
+  const loadState: LoadState = !categoryId ? 'idle' : store.ready ? 'ready' : 'loading'
 
-  // Seed defaults for a category's pillars, preserving anything the URL set.
+  /* ------------------------------------------------------------ priorities */
+
+  // Seed from what the user last chose for this category, then the URL, then
+  // neutral. Remembering priorities is the whole point of asking for them.
+  const seededFor = useRef<CategoryId | null>(null)
   useEffect(() => {
     const category = getCategory(categoryId)
-    if (!category) return
-    setPrioritiesState((current) => {
-      const defaults = defaultPriorities(category)
-      const merged = { ...defaults }
-      for (const [key, value] of Object.entries(current)) {
-        if (key in defaults) merged[key] = value
-      }
-      return merged
-    })
-  }, [categoryId])
+    if (!category || seededFor.current === categoryId) return
+    seededFor.current = categoryId
 
-  /* ------------------------------------------------------------ URL sync */
+    const defaults = defaultPriorities(category)
+    const remembered = profile.prioritiesFor(category.id) ?? {}
+    const fromUrl = initial.category === category.id ? initial.priorities : {}
 
-  // One history entry per navigation. Priority sliders mutate the current
-  // entry instead of stacking one per drag tick.
+    const merged = { ...defaults }
+    for (const [key, value] of Object.entries({ ...remembered, ...fromUrl })) {
+      if (key in defaults) merged[key] = value
+    }
+    setPrioritiesState(merged)
+  }, [categoryId, profile, initial])
+
+  // Persist priority changes so the next visit starts where this one ended.
+  useEffect(() => {
+    if (!categoryId || !Object.keys(priorities).length) return
+    const timer = window.setTimeout(() => profile.savePriorities(categoryId, priorities), 600)
+    return () => window.clearTimeout(timer)
+    // profile is intentionally omitted: it changes identity on every save.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId, priorities])
+
+  /* ---------------------------------------------------------------- URL sync */
+
   const lastNavKey = useRef<string | null>(null)
   useEffect(() => {
     const navKey = `${screen}|${categoryId ?? ''}|${selection.join(',')}`
@@ -151,24 +135,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  /* --------------------------------------------------------------- toast */
+  /* ------------------------------------------------------------------ toast */
 
   const showToast = useCallback((message: string) => {
     window.clearTimeout(toastTimer.current)
     setToast(message)
-    toastTimer.current = window.setTimeout(() => setToast(null), 2600)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2800)
   }, [])
 
   useEffect(() => () => window.clearTimeout(toastTimer.current), [])
 
-  /* ------------------------------------------------------------- actions */
+  /* ---------------------------------------------------------------- actions */
 
   const selectCategory = useCallback((id: CategoryId) => {
     setCategoryId(id)
     setSelectionState([])
     setFilters(EMPTY_FILTERS)
     setScreen('picker')
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
+
+  const selected = useMemo(() => {
+    const byId = new Map(catalogue.map((p) => [p.id, p]))
+    return selection.map((id) => byId.get(id)).filter((p): p is Product => Boolean(p))
+  }, [catalogue, selection])
 
   const toggleProduct = useCallback(
     (id: string) => {
@@ -178,10 +168,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           showToast(`You can compare up to ${MAX_SELECTION} at once`)
           return current
         }
+        const product = catalogue.find((p) => p.id === id)
+        if (product) profile.noteView(product)
         return [...current, id]
       })
     },
-    [showToast],
+    [showToast, catalogue, profile],
   )
 
   const removeProduct = useCallback((id: string) => {
@@ -213,14 +205,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setScreen('home')
     setCategoryId(null)
     setSelectionState([])
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
 
   const goPicker = useCallback(() => setScreen('picker'), [])
-
-  const selected = useMemo(() => {
-    const byId = new Map(catalogue.map((p) => [p.id, p]))
-    return selection.map((id) => byId.get(id)).filter((p): p is Product => Boolean(p))
-  }, [catalogue, selection])
 
   const goCompare = useCallback(() => {
     if (selection.length < MIN_SELECTION) {
@@ -239,62 +227,32 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
 
-  /* ------------------------------------------------- recent comparisons */
+  const openEditorFor = useCallback((product: Product | null) => setEditorTarget(product), [])
+  const closeEditor = useCallback(() => setEditorTarget(undefined), [])
+
+  /* --------------------------------------------------- comparison history */
 
   useEffect(() => {
     if (screen !== 'compare' || !categoryId || selected.length < MIN_SELECTION) return
-    const entry: RecentComparison = {
-      category: categoryId,
-      ids: selected.map((p) => p.id),
-      names: selected.map((p) => p.name),
-      at: Date.now(),
-    }
-    setRecents((current) => {
-      const key = entry.ids.join(',')
-      const next = [entry, ...current.filter((r) => r.ids.join(',') !== key)].slice(0, MAX_RECENTS)
-      try {
-        localStorage.setItem(RECENTS_KEY, JSON.stringify(next))
-      } catch {
-        // Storage can be unavailable (private mode, quota) — recents are a
-        // convenience, never a requirement.
-      }
-      return next
-    })
-  }, [screen, categoryId, selected])
+    profile.noteComparison(categoryId, selected)
+    // Recording once per settled comparison, not on every profile identity change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, categoryId, selected.map((p) => p.id).join(',')])
 
   const value = useMemo<AppStateValue>(
     () => ({
-      screen,
-      categoryId,
-      selection,
-      priorities,
-      filters,
-      catalogue,
-      loadState,
-      recents,
-      toast,
-      selected,
-      selectCategory,
-      toggleProduct,
-      removeProduct,
-      clearSelection,
-      setSelection,
-      setPriority,
-      setPriorities: setPrioritiesState,
-      resetPriorities,
-      patchFilters,
-      resetFilters,
-      goHome,
-      goPicker,
-      goCompare,
-      startMatchup,
-      showToast,
+      screen, categoryId, selection, priorities, filters, catalogue, loadState, toast,
+      selected, editorTarget,
+      selectCategory, toggleProduct, removeProduct, clearSelection, setSelection,
+      setPriority, setPriorities: setPrioritiesState, resetPriorities, patchFilters,
+      resetFilters, goHome, goPicker, goCompare, startMatchup, showToast,
+      openEditorFor, closeEditor,
     }),
     [
-      screen, categoryId, selection, priorities, filters, catalogue, loadState, recents,
-      toast, selected, selectCategory, toggleProduct, removeProduct, clearSelection,
+      screen, categoryId, selection, priorities, filters, catalogue, loadState, toast,
+      selected, editorTarget, selectCategory, toggleProduct, removeProduct, clearSelection,
       setSelection, setPriority, resetPriorities, patchFilters, resetFilters, goHome,
-      goPicker, goCompare, startMatchup, showToast,
+      goPicker, goCompare, startMatchup, showToast, openEditorFor, closeEditor,
     ],
   )
 
@@ -307,7 +265,7 @@ export function useAppState(): AppStateValue {
   return context
 }
 
-/* ---------------------------------------------------------------- theme */
+/* ------------------------------------------------------------------- theme */
 
 export function useTheme() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() =>

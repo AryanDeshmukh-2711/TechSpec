@@ -7,8 +7,8 @@ import { seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 
 /**
- * Sticky bottom tray. Always shows five slots so the "2 to 5" rule is
- * legible without reading any instructions.
+ * Sticky bottom tray. Always shows five slots so the "2 to 5" rule is legible
+ * without reading any instructions.
  */
 export function CompareTray({
   selected,
@@ -27,37 +27,28 @@ export function CompareTray({
   const slots = Array.from({ length: MAX_SELECTION }, (_, i) => selected[i] ?? null)
 
   return (
-    <div
-      className={cn(
-        'ts-no-print sticky bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur-xl',
-        'transition-transform duration-300',
-      )}
-    >
-      <div className="mx-auto w-full max-w-[1400px] px-4 py-3 sm:px-6">
+    <div className="ts-no-print sticky bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur-xl">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-2.5">
         <div className="flex items-center gap-4">
           <div className="ts-scroll-x ts-no-scrollbar flex min-w-0 flex-1 items-center gap-2">
             {slots.map((product, index) =>
               product ? (
                 <div
                   key={product.id}
-                  className="group relative flex shrink-0 items-center gap-2 rounded-xl border bg-surface py-1.5 pr-2 pl-1.5"
+                  className="ts-pop flex shrink-0 items-center gap-2 rounded-md border bg-surface py-1 pr-1.5 pl-1.5"
                   style={{ borderColor: seriesColor(index) }}
                 >
-                  <span className="h-9 w-8 shrink-0">
-                    <DeviceGlyph
-                      category={product.category}
-                      accent={product.accent}
-                      glow={false}
-                    />
+                  <span className="h-8 w-6 shrink-0">
+                    <DeviceGlyph category={product.category} accent={product.accent} glow={false} />
                   </span>
-                  <span className="max-w-[128px] truncate text-[12.5px] font-medium text-ink">
+                  <span className="max-w-[132px] truncate text-[12.5px] font-medium text-ink">
                     {product.name}
                   </span>
                   <button
                     type="button"
                     onClick={() => onRemove(product.id)}
                     aria-label={`Remove ${product.name} from comparison`}
-                    className="flex h-5 w-5 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface-3 hover:text-danger"
+                    className="flex h-6 w-6 items-center justify-center rounded-lg text-faint transition-colors hover:bg-danger-soft hover:text-danger"
                   >
                     <Icon name="X" size={13} />
                   </button>
@@ -66,11 +57,11 @@ export function CompareTray({
                 <div
                   key={`empty-${index}`}
                   className={cn(
-                    'flex h-[46px] shrink-0 items-center gap-2 rounded-xl border border-dashed px-3',
+                    'flex h-[42px] shrink-0 items-center gap-2 rounded-md border border-dashed px-3',
                     index < MIN_SELECTION ? 'border-line-strong' : 'border-line',
                   )}
                 >
-                  <Icon name="Plus" size={13} className="text-faint" />
+                  <Icon name="Plus" size={14} className="text-faint" />
                   <span className="text-[12px] text-faint">
                     {index < MIN_SELECTION ? 'Required' : `Slot ${index + 1}`}
                   </span>

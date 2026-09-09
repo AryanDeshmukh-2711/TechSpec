@@ -6,7 +6,7 @@ import { applyDealBreakers, computePersonaVerdicts, scoreProducts } from '@/lib/
 import { seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
-import { Button, EmptyState, Skeleton, Switch } from '@/components/ui/primitives'
+import { Button, Disclosure, EmptyState, Skeleton, Switch } from '@/components/ui/primitives'
 import { RadarChart, type RadarSeries } from '@/components/charts/RadarChart'
 import { ValueScatter } from '@/components/charts/ValueScatter'
 import { ProductColumns } from './ProductColumns'
@@ -83,7 +83,7 @@ export function CompareScreen({ category }: { category: Category }) {
 
   if (selected.length < MIN_SELECTION) {
     return (
-      <div className="mx-auto w-full max-w-[1400px] px-4 py-16 sm:px-6">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-16">
         <div className="ts-card">
           <EmptyState
             icon="Scale"
@@ -128,7 +128,7 @@ export function CompareScreen({ category }: { category: Category }) {
   )
 
   return (
-    <div className="ts-fade mx-auto w-full max-w-[1400px] px-4 pt-6 sm:px-6">
+    <div className="ts-fade mx-auto w-full max-w-[1280px] px-4 pt-5">
       {/* --------------------------------------------------------- toolbar */}
       <div className="ts-no-print flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -146,12 +146,11 @@ export function CompareScreen({ category }: { category: Category }) {
       </div>
 
       <header className="mt-4 print:mt-0">
-        <h1 className="text-[24px] leading-tight font-semibold tracking-tight text-balance text-ink sm:text-[30px]">
+        <h1 className="text-[19px] leading-tight font-semibold text-balance text-ink sm:text-[22px]">
           {selected.map((p) => p.name).join('  vs  ')}
         </h1>
-        <p className="mt-1.5 text-[13px] text-muted">
-          {category.label} · {category.pillars.length} weighted pillars ·{' '}
-          {category.specs.filter((s) => !s.internal).length} specs tracked
+        <p className="mt-1 text-[12.5px] text-muted">
+          {category.label} · {category.pillars.length} weighted pillars
         </p>
       </header>
 
@@ -166,7 +165,7 @@ export function CompareScreen({ category }: { category: Category }) {
         canRemove={selected.length > MIN_SELECTION}
       />
 
-      <div className="mt-5 space-y-4 pb-4">
+      <div className="mt-4 space-y-3 pb-4">
         <DealBreakers
           category={category}
           scored={scored}
@@ -193,101 +192,74 @@ export function CompareScreen({ category }: { category: Category }) {
           onReset={resetPriorities}
         />
 
-        {/* ---------------------------------------------------------- charts */}
-        {/* min-w-0 on the grid children: without it a grid item defaults to
-            min-width:auto and is sized by its widest content, so the pillar
-            breakdown table's min-width escapes its own scroll container and
-            pushes the whole page sideways. */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          <section
-            className="ts-card ts-print-block min-w-0 p-5"
-            aria-labelledby="radar-heading"
-          >
-            <h2
-              id="radar-heading"
-              className="flex items-center gap-2 text-[15px] font-semibold text-ink"
-            >
-              <Icon name="Target" size={16} className="text-brand-text" />
-              Capability profile
-            </h2>
-            <p className="mt-1 text-[13px] text-muted">
-              Each axis is scored against every {category.singular} in the catalogue, so the
-              shape tells you where these sit in the class — not just against each other.
-            </p>
-            <div className="mt-4">
+        {/* Heavy sections start closed. The page opens with the answer;
+            the evidence is one click away and always prints in full. */}
+        <Disclosure
+          title="Capability profile"
+          icon="Target"
+          summary={`Radar across ${category.pillars.length} pillars, plus a spec-level audit`}
+        >
+          <p className="mb-4 text-[12.5px] leading-relaxed text-muted">
+            Each axis is scored against every {category.singular} in the catalogue, so the shape
+            tells you where these sit in the class — not just against each other.
+          </p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="min-w-0">
               <RadarChart
-                axes={category.pillars.map((p) => ({
-                  id: p.id,
-                  label: p.short,
-                  hint: p.hint,
-                }))}
+                axes={category.pillars.map((p) => ({ id: p.id, label: p.short, hint: p.hint }))}
                 series={radarSeries}
-                size={340}
+                size={320}
               />
             </div>
-            <PillarBreakdown category={category} scored={scored} colors={colors} />
-          </section>
-
-          <section
-            className="ts-card ts-print-block min-w-0 p-5"
-            aria-labelledby="value-heading"
-          >
-            <h2
-              id="value-heading"
-              className="flex items-center gap-2 text-[15px] font-semibold text-ink"
-            >
-              <Icon name="TrendingUp" size={16} className="text-brand-text" />
-              Is it worth the money?
-            </h2>
-            <p className="mt-1 text-[13px] text-muted">
-              Your weighted score plotted against price. Anything below the dashed line is
-              beaten by something cheaper in this very comparison.
-            </p>
-            <div className="mt-6">
+            <div className="min-w-0">
               <ValueScatter items={scored} colors={colors} />
-            </div>
-          </section>
-        </div>
-
-        {verdicts.length > 0 && (
-          <PersonaGrid verdicts={verdicts} colors={colors} onApplyPreset={applyPreset} />
-        )}
-
-        <HeadToHead category={category} scored={scored} colors={colors} />
-
-        {/* ------------------------------------------------------ spec sheet */}
-        <section aria-labelledby="specs-heading" className="pt-2">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2
-                id="specs-heading"
-                className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-ink"
-              >
-                <Icon name="Rows3" size={17} className="text-brand-text" />
-                Full spec sheet
-              </h2>
-              <p className="mt-1 text-[13px] text-muted">
-                Bars show where each value sits across the whole category. A green cell is the
-                best of the products you're comparing.
+              <p className="mt-2 text-[12px] leading-relaxed text-muted">
+                Weighted score against price. Anything below the dashed line is beaten by
+                something cheaper in this very comparison.
               </p>
             </div>
-            <div className="ts-no-print flex flex-wrap items-center gap-x-5 gap-y-2">
-              <Switch
-                checked={differencesOnly}
-                onChange={setDifferencesOnly}
-                label="Differences only"
-                hint="Hide every spec where all products match"
-              />
-              <Switch
-                checked={biggestGapsFirst}
-                onChange={setBiggestGapsFirst}
-                label="Biggest gaps first"
-                hint="Order specs within each group by how far apart the products are"
-              />
-            </div>
+          </div>
+          <PillarBreakdown category={category} scored={scored} colors={colors} />
+        </Disclosure>
+
+        {verdicts.length > 0 && (
+          <Disclosure
+            title="Best for each kind of buyer"
+            icon="Award"
+            summary={`${verdicts.length} buyer profiles scored independently`}
+          >
+            <PersonaGrid verdicts={verdicts} colors={colors} onApplyPreset={applyPreset} />
+          </Disclosure>
+        )}
+
+        <Disclosure
+          title="Head to head"
+          icon="Scale"
+          summary="The specs behind each product's lead"
+        >
+          <HeadToHead category={category} scored={scored} colors={colors} />
+        </Disclosure>
+
+        <Disclosure
+          title="Full spec sheet"
+          icon="Rows3"
+          summary={`${category.specs.filter((sp) => !sp.internal).length} specs across ${activeGroups.length} groups`}
+        >
+          <div className="ts-no-print mb-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Switch
+              checked={differencesOnly}
+              onChange={setDifferencesOnly}
+              label="Differences only"
+              hint="Hide every spec where all products match"
+            />
+            <Switch
+              checked={biggestGapsFirst}
+              onChange={setBiggestGapsFirst}
+              label="Biggest gaps first"
+              hint="Order specs within each group by how far apart the products are"
+            />
           </div>
 
-          {/* Group jump nav */}
           <nav
             className="ts-no-print ts-scroll-x ts-no-scrollbar mb-4 flex gap-1.5 pb-1"
             aria-label="Jump to spec group"
@@ -297,11 +269,11 @@ export function CompareScreen({ category }: { category: Category }) {
                 key={groupId}
                 href={`#group-${groupId}`}
                 className={cn(
-                  'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface-2 px-3',
-                  'text-[12.5px] font-medium text-muted transition-colors hover:border-line-strong hover:text-ink',
+                  'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface-2 px-2.5',
+                  'text-[12px] font-medium text-muted transition-colors hover:border-line-strong hover:text-ink',
                 )}
               >
-                <Icon name={SPEC_GROUPS[groupId].icon} size={13} />
+                <Icon name={SPEC_GROUPS[groupId].icon} size={12} />
                 {SPEC_GROUPS[groupId].label}
               </a>
             ))}
@@ -313,7 +285,7 @@ export function CompareScreen({ category }: { category: Category }) {
             colors={colors}
             options={{ differencesOnly, biggestGapsFirst }}
           />
-        </section>
+        </Disclosure>
       </div>
     </div>
   )
@@ -321,7 +293,7 @@ export function CompareScreen({ category }: { category: Category }) {
 
 function CompareSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-4 pt-8 sm:px-6">
+    <div className="mx-auto w-full max-w-[1280px] px-4 pt-8">
       <Skeleton className="h-8 w-2/3 max-w-lg" />
       <Skeleton className="mt-3 h-3 w-52" />
       <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_0.85fr]">

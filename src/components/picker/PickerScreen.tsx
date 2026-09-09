@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Category, SortKey } from '@/types'
 import { MAX_SELECTION, useAppState } from '@/hooks/useAppState'
+import { useCatalogue } from '@/data/store/CatalogueProvider'
 import {
   SORT_OPTIONS,
   activeFilterCount,
@@ -8,12 +9,12 @@ import {
   brandsOf,
   priceBoundsOf,
 } from '@/lib/filters'
-import { formatCompactPrice, pluralise, seriesColor } from '@/lib/format'
+import { formatCompactPrice, seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
-import { Button, Chip, EmptyState } from '@/components/ui/primitives'
+import { Badge, Button, Chip, EmptyState } from '@/components/ui/primitives'
 import { DualRange } from '@/components/ui/DualRange'
-import { ProductCard, ProductCardSkeleton } from './ProductCard'
+import { AddDeviceCard, ProductCard, ProductCardSkeleton } from './ProductCard'
 import { CompareTray } from './CompareTray'
 
 export function PickerScreen({ category }: { category: Category }) {
@@ -29,7 +30,9 @@ export function PickerScreen({ category }: { category: Category }) {
     removeProduct,
     clearSelection,
     goCompare,
+    openEditorFor,
   } = useAppState()
+  const store = useCatalogue()
 
   const [showFilters, setShowFilters] = useState(false)
 
@@ -48,8 +51,8 @@ export function PickerScreen({ category }: { category: Category }) {
 
   const filterCount = activeFilterCount(filters)
   const atCapacity = selection.length >= MAX_SELECTION
+  const stats = store.statsFor(category.id)
 
-  // Close the mobile filter sheet when escape is pressed.
   useEffect(() => {
     if (!showFilters) return
     const onKey = (e: KeyboardEvent) => {
@@ -60,76 +63,92 @@ export function PickerScreen({ category }: { category: Category }) {
   }, [showFilters])
 
   return (
-    <div className="ts-fade flex min-h-[calc(100dvh-3.5rem)] flex-col">
-      <div className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-8 sm:px-6">
+    <div className="ts-fade flex min-h-[calc(100dvh-4rem)] flex-col">
+      <div className="mx-auto w-full max-w-[1280px] flex-1 px-4 pt-6">
         {/* -------------------------------------------------------- heading */}
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="flex items-center gap-2.5 text-[24px] font-semibold tracking-tight text-ink sm:text-[28px]">
-              <Icon name={category.icon} size={22} className="text-brand-text" />
-              Choose {category.label.toLowerCase()} to compare
-            </h1>
-            <p className="mt-2 text-[14px] text-muted">
-              Select between 2 and {MAX_SELECTION}. {category.blurb}
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md border border-line bg-surface-2 text-brand-text">
+                <Icon name={category.icon} size={15} />
+              </span>
+              <h1 className="text-[19px] font-semibold text-ink">{category.label}</h1>
+              {stats.total > 0 && (
+                <Badge tone="brand" icon="Pencil">
+                  {stats.total} CUSTOMISED
+                </Badge>
+              )}
+            </div>
+            <p className="mt-2 max-w-xl text-[12.5px] leading-relaxed text-muted">
+              {category.blurb} Pick between 2 and {MAX_SELECTION} — or add a{' '}
+              {category.singular} we don't have.
             </p>
           </div>
+
           <div className="flex items-center gap-2">
-            <label className="sr-only" htmlFor="sort">
-              Sort results
-            </label>
-            <div className="relative">
-              <select
-                id="sort"
-                value={filters.sort}
-                onChange={(e) => patchFilters({ sort: e.target.value as SortKey })}
-                className="h-10 appearance-none rounded-xl border border-line bg-surface-2 pr-9 pl-9 text-[13px] font-medium text-ink transition-colors hover:border-line-strong focus:outline-none"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <Icon
-                name="ArrowUpDown"
-                size={14}
-                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint"
-              />
-              <Icon
-                name="ChevronDown"
-                size={14}
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-faint"
-              />
-            </div>
+            <Button icon="Plus" variant="secondary" onClick={() => openEditorFor(null)}>
+              <span className="hidden sm:inline">Add {category.singular}</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
             <Button
               icon="SlidersHorizontal"
               onClick={() => setShowFilters((v) => !v)}
               className="lg:hidden"
             >
-              Filters{filterCount > 0 && ` (${filterCount})`}
+              {filterCount > 0 ? `Filters (${filterCount})` : 'Filters'}
             </Button>
           </div>
         </div>
 
         {/* ---------------------------------------------------------- search */}
-        <div className="relative mt-6">
-          <Icon
-            name="Search"
-            size={17}
-            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-faint"
-          />
-          <input
-            type="search"
-            value={filters.query}
-            onChange={(e) => patchFilters({ query: e.target.value })}
-            placeholder={`Search ${category.label.toLowerCase()} by name, brand or chipset…`}
-            aria-label={`Search ${category.label}`}
-            className="h-12 w-full rounded-xl border border-line bg-surface pr-4 pl-11 text-[14px] text-ink transition-colors placeholder:text-faint hover:border-line-strong focus:border-brand focus:outline-none"
-          />
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <div className="relative min-w-0 flex-1">
+            <Icon
+              name="Search"
+              size={15}
+              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint"
+            />
+            <input
+              type="search"
+              value={filters.query}
+              onChange={(e) => patchFilters({ query: e.target.value })}
+              placeholder={`Search ${category.plural} by name, brand or chipset…`}
+              aria-label={`Search ${category.label}`}
+              className="h-9 w-full rounded-md border border-line bg-surface pr-3 pl-9 text-[13px] text-ink transition-colors placeholder:text-faint hover:border-line-strong focus:border-brand focus:outline-none"
+            />
+          </div>
+
+          <div className="relative shrink-0">
+            <label className="sr-only" htmlFor="sort">
+              Sort results
+            </label>
+            <select
+              id="sort"
+              value={filters.sort}
+              onChange={(e) => patchFilters({ sort: e.target.value as SortKey })}
+              className="h-9 appearance-none rounded-md border border-line bg-surface pr-8 pl-8 text-[12.5px] font-medium text-ink transition-colors hover:border-line-strong focus:outline-none"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <Icon
+              name="ArrowUpDown"
+              size={14}
+              className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-faint"
+            />
+            <Icon
+              name="ChevronDown"
+              size={14}
+              className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-faint"
+            />
+          </div>
         </div>
 
         {/* ----------------------------------------------------- quick chips */}
-        <div className="ts-scroll-x ts-no-scrollbar mt-3 flex items-center gap-2 pb-1">
+        <div className="ts-scroll-x ts-no-scrollbar mt-4 flex items-center gap-2 pb-1">
           {category.quickFilters.map((quick) => {
             const active = filters.quickFilters.includes(quick.id)
             return (
@@ -161,12 +180,9 @@ export function PickerScreen({ category }: { category: Category }) {
         </div>
 
         {/* ------------------------------------------------------ main grid */}
-        <div className="mt-6 grid gap-6 lg:grid-cols-[236px_1fr]">
+        <div className="mt-5 grid gap-6 lg:grid-cols-[210px_1fr]">
           <FilterPanel
-            className={cn(
-              'lg:sticky lg:top-[4.5rem] lg:block lg:h-fit',
-              showFilters ? 'block' : 'hidden',
-            )}
+            className={cn('lg:sticky lg:top-16 lg:block lg:h-fit', showFilters ? 'block' : 'hidden')}
             brands={brands}
             selectedBrands={filters.brands}
             onBrandToggle={(brand) =>
@@ -191,75 +207,76 @@ export function PickerScreen({ category }: { category: Category }) {
             hasFilters={filterCount > 0}
           />
 
-          <div>
+          <div className="min-w-0">
             {loadState === 'ready' && (
-              <p className="mb-3 text-[12.5px] text-faint" aria-live="polite">
+              <p className="mb-4 text-[12.5px] text-faint" aria-live="polite">
                 {results.length === catalogue.length
-                  ? pluralise(results.length, category.singular, category.plural)
+                  ? `${results.length} ${results.length === 1 ? category.singular : category.plural}`
                   : `${results.length} of ${catalogue.length} ${category.plural}`}
                 {atCapacity && ' · comparison slots full'}
               </p>
             )}
 
-            {loadState === 'loading' || loadState === 'idle' ? (
+            {loadState !== 'ready' ? (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }, (_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
               </div>
-            ) : loadState === 'error' ? (
-              <div className="ts-card">
-                <EmptyState
-                  icon="CircleAlert"
-                  title="Couldn't load this category"
-                  description="Something went wrong fetching the catalogue. Try again in a moment."
-                  action={
-                    <Button icon="RotateCcw" onClick={() => window.location.reload()}>
-                      Reload
-                    </Button>
-                  }
-                />
-              </div>
             ) : results.length === 0 ? (
               <div className="ts-card">
                 <EmptyState
                   icon="Search"
-                  title="No matches"
+                  title={catalogue.length === 0 ? 'This category is empty' : 'No matches'}
                   description={
-                    filters.query
-                      ? `Nothing in ${category.label.toLowerCase()} matches “${filters.query}” with these filters.`
-                      : 'No products match the current filters. Try widening the price range or clearing a chip.'
+                    catalogue.length === 0
+                      ? `You've hidden every built-in ${category.singular}. Add one of your own, or restore the built-in catalogue from settings.`
+                      : filters.query
+                        ? `Nothing matches “${filters.query}” with these filters.`
+                        : 'Nothing matches the current filters. Try widening the price range or clearing a chip.'
                   }
                   action={
-                    <Button icon="RotateCcw" onClick={resetFilters}>
-                      Clear all filters
-                    </Button>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {catalogue.length > 0 && (
+                        <Button icon="RotateCcw" onClick={resetFilters}>
+                          Clear all filters
+                        </Button>
+                      )}
+                      <Button variant="primary" icon="Plus" onClick={() => openEditorFor(null)}>
+                        Add a {category.singular}
+                      </Button>
+                    </div>
                   }
                 />
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {results.map((product) => {
-                  const index = selection.indexOf(product.id)
+                {results.map((product, index) => {
+                  const slot = selection.indexOf(product.id)
                   return (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      category={category}
-                      selected={index !== -1}
-                      slotColor={index !== -1 ? seriesColor(index) : undefined}
-                      disabled={atCapacity}
-                      onToggle={() => toggleProduct(product.id)}
-                    />
+                    <div key={product.id} style={{ '--i': Math.min(index, 8) } as React.CSSProperties}>
+                      <ProductCard
+                        product={product}
+                        category={category}
+                        selected={slot !== -1}
+                        slotColor={slot !== -1 ? seriesColor(slot) : undefined}
+                        disabled={atCapacity}
+                        added={store.isUserAdded(category.id, product.id)}
+                        edited={store.isEdited(category.id, product.id)}
+                        onToggle={() => toggleProduct(product.id)}
+                        onEdit={() => openEditorFor(product)}
+                      />
+                    </div>
                   )
                 })}
+                <AddDeviceCard category={category} onClick={() => openEditorFor(null)} />
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-8">
         <CompareTray
           selected={selected}
           category={category}
@@ -304,8 +321,8 @@ function FilterPanel({
   return (
     <aside className={cn('ts-card h-fit p-4', className)}>
       <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
-          <Icon name="SlidersHorizontal" size={14} className="text-faint" />
+        <h2 className="flex items-center gap-2 text-[13.5px] font-semibold text-ink">
+          <Icon name="SlidersHorizontal" size={15} className="text-faint" />
           Filters
         </h2>
         {hasFilters && (
@@ -319,7 +336,7 @@ function FilterPanel({
         )}
       </div>
 
-      <div className="mt-4">
+      <div className="mt-5">
         <DualRange
           label="Price"
           min={priceFloor}
@@ -331,15 +348,15 @@ function FilterPanel({
         />
       </div>
 
-      <div className="mt-6">
-        <p className="mb-2.5 text-[12px] font-medium text-muted">Brand</p>
+      <div className="mt-7">
+        <p className="mb-3 text-[12px] font-medium text-muted">Brand</p>
         <div className="flex flex-wrap gap-1.5">
           {brands.map((brand) => (
             <Chip
               key={brand}
               active={selectedBrands.includes(brand)}
               onClick={() => onBrandToggle(brand)}
-              className="h-7 px-2.5 text-[12px]"
+              className="h-8 px-3 text-[12px]"
             >
               {brand}
             </Chip>
@@ -347,7 +364,7 @@ function FilterPanel({
         </div>
       </div>
 
-      <div className="mt-6 border-t border-line pt-3.5">
+      <div className="mt-7 border-t border-line pt-4">
         <p className="tnum text-[12px] text-faint">
           Showing <span className="font-semibold text-ink">{resultCount}</span> of {totalCount}
         </p>
