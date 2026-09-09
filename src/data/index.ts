@@ -31,7 +31,12 @@ export const CATEGORIES: Category[] = [
   camerasCategory,
 ]
 
-const CATALOGUE: Record<CategoryId, Product[]> = {
+/**
+ * The bundled catalogue is a *seed*, not the truth. `CatalogueProvider`
+ * composes it with each user's overlay of edits, additions and removals; this
+ * map is only ever the starting point and the "reset" target.
+ */
+export const SEED_CATALOGUE: Record<CategoryId, Product[]> = {
   mobiles: hydrate(mobileProducts),
   laptops: hydrate(laptopProducts),
   tablets: hydrate(tabletProducts),
@@ -44,19 +49,20 @@ export function getCategory(id: CategoryId | null | undefined): Category | undef
   return CATEGORIES.find((c) => c.id === id)
 }
 
+/** Size of the seed catalogue. Live counts come from `useCatalogue()`. */
 export function productCount(id: CategoryId): number {
-  return CATALOGUE[id]?.length ?? 0
+  return SEED_CATALOGUE[id]?.length ?? 0
 }
 
-export const TOTAL_PRODUCTS = Object.values(CATALOGUE).reduce((sum, list) => sum + list.length, 0)
+export const TOTAL_PRODUCTS = Object.values(SEED_CATALOGUE).reduce((sum, list) => sum + list.length, 0)
 
 /**
- * Deliberately async. The data ships in the bundle today, but every call site
- * already awaits it — swapping in a real API later touches this file only.
+ * Seed-only async accessor, kept for the data-integrity tests. Application
+ * code reads through `useCatalogue()` so it sees the user's overlay too.
  */
 export async function fetchCatalogue(id: CategoryId): Promise<Product[]> {
-  await new Promise((resolve) => setTimeout(resolve, 260))
-  const list = CATALOGUE[id]
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  const list = SEED_CATALOGUE[id]
   if (!list) throw new Error(`Unknown category: ${id}`)
   return list
 }
