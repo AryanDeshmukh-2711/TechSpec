@@ -139,9 +139,7 @@ export function CommandPalette({
 
   let lastGroup = ''
 
-  return (
-    <div className="ts-no-print fixed inset-0 z-100 flex items-start justify-center px-4 pt-[12vh]">
-      <button
+    <div className="ts-no-print fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]">
         type="button"
         aria-label="Close search"
         onClick={onClose}
