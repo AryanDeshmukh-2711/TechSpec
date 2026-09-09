@@ -64,22 +64,22 @@ export function PickerScreen({ category }: { category: Category }) {
 
   return (
     <div className="ts-fade flex min-h-[calc(100dvh-4rem)] flex-col">
-      <div className="mx-auto w-full max-w-[1440px] flex-1 px-4 pt-10 sm:px-6">
+      <div className="mx-auto w-full max-w-[1280px] flex-1 px-4 pt-6">
         {/* -------------------------------------------------------- heading */}
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-line bg-surface-2 text-brand-text">
-                <Icon name={category.icon} size={19} />
+              <span className="flex h-7 w-7 items-center justify-center rounded-md border border-line bg-surface-2 text-brand-text">
+                <Icon name={category.icon} size={15} />
               </span>
-              <h1 className="ts-display text-[28px] text-ink sm:text-[34px]">{category.label}</h1>
+              <h1 className="text-[19px] font-semibold text-ink">{category.label}</h1>
               {stats.total > 0 && (
                 <Badge tone="brand" icon="Pencil">
                   {stats.total} CUSTOMISED
                 </Badge>
               )}
             </div>
-            <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-muted">
+            <p className="mt-2 max-w-xl text-[12.5px] leading-relaxed text-muted">
               {category.blurb} Pick between 2 and {MAX_SELECTION} — or add a{' '}
               {category.singular} we don't have.
             </p>
@@ -101,12 +101,12 @@ export function PickerScreen({ category }: { category: Category }) {
         </div>
 
         {/* ---------------------------------------------------------- search */}
-        <div className="mt-7 flex flex-wrap items-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center gap-2">
           <div className="relative min-w-0 flex-1">
             <Icon
               name="Search"
-              size={18}
-              className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-faint"
+              size={15}
+              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint"
             />
             <input
               type="search"
@@ -114,7 +114,7 @@ export function PickerScreen({ category }: { category: Category }) {
               onChange={(e) => patchFilters({ query: e.target.value })}
               placeholder={`Search ${category.plural} by name, brand or chipset…`}
               aria-label={`Search ${category.label}`}
-              className="h-13 w-full rounded-2xl border border-line bg-surface pr-4 pl-12 text-[14.5px] text-ink shadow-soft transition-colors placeholder:text-faint hover:border-line-strong focus:border-brand focus:outline-none"
+              className="h-9 w-full rounded-md border border-line bg-surface pr-3 pl-9 text-[13px] text-ink transition-colors placeholder:text-faint hover:border-line-strong focus:border-brand focus:outline-none"
             />
           </div>
 
@@ -126,7 +126,7 @@ export function PickerScreen({ category }: { category: Category }) {
               id="sort"
               value={filters.sort}
               onChange={(e) => patchFilters({ sort: e.target.value as SortKey })}
-              className="h-13 appearance-none rounded-2xl border border-line bg-surface pr-10 pl-10 text-[13.5px] font-medium text-ink shadow-soft transition-colors hover:border-line-strong focus:outline-none"
+              className="h-9 appearance-none rounded-md border border-line bg-surface pr-8 pl-8 text-[12.5px] font-medium text-ink transition-colors hover:border-line-strong focus:outline-none"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.key} value={option.key}>
@@ -136,13 +136,13 @@ export function PickerScreen({ category }: { category: Category }) {
             </select>
             <Icon
               name="ArrowUpDown"
-              size={15}
-              className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-faint"
+              size={14}
+              className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-faint"
             />
             <Icon
               name="ChevronDown"
-              size={15}
-              className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-faint"
+              size={14}
+              className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-faint"
             />
           </div>
         </div>
@@ -180,9 +180,9 @@ export function PickerScreen({ category }: { category: Category }) {
         </div>
 
         {/* ------------------------------------------------------ main grid */}
-        <div className="mt-7 grid gap-7 lg:grid-cols-[248px_1fr]">
+        <div className="mt-5 grid gap-6 lg:grid-cols-[210px_1fr]">
           <FilterPanel
-            className={cn('lg:sticky lg:top-24 lg:block lg:h-fit', showFilters ? 'block' : 'hidden')}
+            className={cn('lg:sticky lg:top-16 lg:block lg:h-fit', showFilters ? 'block' : 'hidden')}
             brands={brands}
             selectedBrands={filters.brands}
             onBrandToggle={(brand) =>
@@ -218,7 +218,7 @@ export function PickerScreen({ category }: { category: Category }) {
             )}
 
             {loadState !== 'ready' ? (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }, (_, i) => (
                   <ProductCardSkeleton key={i} />
                 ))}
@@ -250,7 +250,7 @@ export function PickerScreen({ category }: { category: Category }) {
                 />
               </div>
             ) : (
-              <div className="ts-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {results.map((product, index) => {
                   const slot = selection.indexOf(product.id)
                   return (
@@ -276,7 +276,7 @@ export function PickerScreen({ category }: { category: Category }) {
         </div>
       </div>
 
-      <div className="mt-12">
+      <div className="mt-8">
         <CompareTray
           selected={selected}
           category={category}
@@ -319,7 +319,7 @@ function FilterPanel({
   const step = priceCeiling > 2000 ? 50 : 10
 
   return (
-    <aside className={cn('ts-card h-fit p-5', className)}>
+    <aside className={cn('ts-card h-fit p-4', className)}>
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-[13.5px] font-semibold text-ink">
           <Icon name="SlidersHorizontal" size={15} className="text-faint" />

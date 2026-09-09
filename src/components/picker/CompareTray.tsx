@@ -27,18 +27,18 @@ export function CompareTray({
   const slots = Array.from({ length: MAX_SELECTION }, (_, i) => selected[i] ?? null)
 
   return (
-    <div className="ts-no-print sticky bottom-0 z-30 border-t border-line bg-paper/90 backdrop-blur-xl">
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-3.5 sm:px-6">
+    <div className="ts-no-print sticky bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur-xl">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-2.5">
         <div className="flex items-center gap-4">
           <div className="ts-scroll-x ts-no-scrollbar flex min-w-0 flex-1 items-center gap-2">
             {slots.map((product, index) =>
               product ? (
                 <div
                   key={product.id}
-                  className="ts-pop flex shrink-0 items-center gap-2 rounded-2xl border bg-surface py-1.5 pr-2 pl-2 shadow-soft"
+                  className="ts-pop flex shrink-0 items-center gap-2 rounded-md border bg-surface py-1 pr-1.5 pl-1.5"
                   style={{ borderColor: seriesColor(index) }}
                 >
-                  <span className="h-10 w-8 shrink-0">
+                  <span className="h-8 w-6 shrink-0">
                     <DeviceGlyph category={product.category} accent={product.accent} glow={false} />
                   </span>
                   <span className="max-w-[132px] truncate text-[12.5px] font-medium text-ink">
@@ -57,7 +57,7 @@ export function CompareTray({
                 <div
                   key={`empty-${index}`}
                   className={cn(
-                    'flex h-[52px] shrink-0 items-center gap-2 rounded-2xl border border-dashed px-3.5',
+                    'flex h-[42px] shrink-0 items-center gap-2 rounded-md border border-dashed px-3',
                     index < MIN_SELECTION ? 'border-line-strong' : 'border-line',
                   )}
                 >

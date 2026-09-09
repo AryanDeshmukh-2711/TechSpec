@@ -35,7 +35,7 @@ export function ProductCard({
       className={cn(
         'group ts-card relative flex flex-col overflow-hidden transition-all duration-200',
         selected
-          ? 'ring-2 ring-offset-2 ring-offset-paper'
+          ? 'ring-1 ring-offset-1 ring-offset-bg'
           : 'hover:-translate-y-0.5 hover:shadow-card',
         disabled && !selected && 'opacity-55',
       )}
@@ -50,8 +50,8 @@ export function ProductCard({
         <Icon name="Pencil" size={14} />
       </button>
 
-      <div className="flex gap-4 p-5 pb-4">
-        <div className="relative h-[92px] w-[74px] shrink-0">
+      <div className="flex gap-3 p-4 pb-3">
+        <div className="relative h-[68px] w-[54px] shrink-0">
           <DeviceGlyph category={product.category} accent={product.accent} />
         </div>
 
@@ -70,7 +70,7 @@ export function ProductCard({
               </Badge>
             ) : null}
           </div>
-          <h3 className="mt-1 text-[15px] leading-snug font-semibold text-ink">{product.name}</h3>
+          <h3 className="mt-0.5 text-[13.5px] leading-snug font-semibold text-ink">{product.name}</h3>
           <div className="mt-1.5 flex items-center gap-2">
             <StarRating value={product.rating} />
             <span className="tnum text-[11.5px] text-faint">{product.rating.toFixed(1)}</span>
@@ -81,7 +81,7 @@ export function ProductCard({
         </div>
       </div>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 border-t border-line px-5 py-3.5">
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-line px-4 py-3">
         {category.cardSpecs.map((key) => {
           const def = specByKey.get(key)
           if (!def) return null
@@ -98,9 +98,9 @@ export function ProductCard({
         })}
       </dl>
 
-      <div className="mt-auto flex items-center justify-between gap-3 border-t border-line px-5 py-3.5">
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-line px-4 py-3">
         <div>
-          <p className="tnum ts-display text-[18px] text-ink">{formatPrice(product.price)}</p>
+          <p className="tnum text-[15px] font-semibold text-ink">{formatPrice(product.price)}</p>
           <p className="text-[11px] text-faint">at launch · {product.releaseYear}</p>
         </div>
         <button
@@ -109,7 +109,7 @@ export function ProductCard({
           disabled={disabled && !selected}
           aria-pressed={selected}
           className={cn(
-            'inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-[13px] font-medium',
+            'inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[12.5px] font-medium',
             'transition-all duration-150 active:scale-[0.97]',
             'disabled:cursor-not-allowed disabled:opacity-60',
             selected
@@ -129,8 +129,8 @@ export function ProductCard({
 export function ProductCardSkeleton() {
   return (
     <div className="ts-card overflow-hidden">
-      <div className="flex gap-4 p-5 pb-4">
-        <div className="ts-shimmer h-[92px] w-[74px] shrink-0" />
+      <div className="flex gap-3 p-4 pb-3">
+        <div className="ts-shimmer h-[68px] w-[54px] shrink-0" />
         <div className="flex-1 space-y-2">
           <div className="ts-shimmer h-2.5 w-16" />
           <div className="ts-shimmer h-4 w-3/4" />
@@ -138,7 +138,7 @@ export function ProductCardSkeleton() {
           <div className="ts-shimmer h-2.5 w-full" />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4 border-t border-line px-5 py-3.5">
+      <div className="grid grid-cols-2 gap-4 border-t border-line px-4 py-3">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="space-y-1.5">
             <div className="ts-shimmer h-2 w-12" />
@@ -146,7 +146,7 @@ export function ProductCardSkeleton() {
           </div>
         ))}
       </div>
-      <div className="flex items-center justify-between border-t border-line px-5 py-3.5">
+      <div className="flex items-center justify-between border-t border-line px-4 py-3">
         <div className="ts-shimmer h-5 w-16" />
         <div className="ts-shimmer h-10 w-28 rounded-xl" />
       </div>
@@ -167,13 +167,13 @@ export function AddDeviceCard({
       type="button"
       onClick={onClick}
       className={cn(
-        'group flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-[1.375rem]',
+        'group flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-[10px]',
         'border border-dashed border-line-strong/70 bg-surface-2/40 p-6 text-center',
         'transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/50 hover:bg-brand-soft/40',
       )}
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-surface text-faint transition-colors group-hover:border-brand/40 group-hover:text-brand-text">
-        <Icon name="Plus" size={22} />
+      <span className="flex h-9 w-9 items-center justify-center rounded-md border border-line bg-surface text-faint transition-colors group-hover:border-brand/40 group-hover:text-brand-text">
+        <Icon name="Plus" size={17} />
       </span>
       <span>
         <span className="block text-[14px] font-semibold text-ink">

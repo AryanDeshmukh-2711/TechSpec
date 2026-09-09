@@ -43,70 +43,48 @@ export function HomeScreen() {
   return (
     <div className="ts-fade">
       {/* ------------------------------------------------------------ hero */}
-      <section className="relative overflow-hidden border-b border-line">
-        <div className="ts-texture pointer-events-none absolute inset-0" />
-        <div className="ts-glow pointer-events-none absolute inset-x-0 top-0 h-72" />
-
-        <div className="relative mx-auto w-full max-w-[1440px] px-4 sm:px-6">
-          <div className={cn('mx-auto max-w-3xl text-center', hasHistory ? 'py-12' : 'py-20 sm:py-28')}>
+      <section className="border-b border-line">
+        <div className="mx-auto w-full max-w-[1280px] px-4">
+          <div className={cn('max-w-2xl', hasHistory ? 'py-8' : 'py-14')}>
             {hasHistory ? (
               <>
-                <Badge tone="brand" icon="Sparkles">
-                  WELCOME BACK
-                </Badge>
-                <h1 className="ts-display mt-4 text-[32px] leading-[1.1] text-balance text-ink sm:text-[40px]">
+                <h1 className="text-[22px] leading-tight font-semibold text-ink">
                   Pick up where you left off
                 </h1>
               </>
             ) : (
               <>
-                <Badge tone="brand" icon="Sparkles">
-                  YOUR CATALOGUE · YOUR WEIGHTS
-                </Badge>
-                <h1 className="ts-display mt-5 text-[38px] leading-[1.05] text-balance text-ink sm:text-[58px]">
-                  Everyone else tells you what's best.
-                  <br />
-                  <span className="text-brand-text">We ask you first.</span>
+                <h1 className="text-[28px] leading-tight font-semibold text-balance text-ink sm:text-[34px]">
+                  Compare on your terms
                 </h1>
-                <p className="mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-muted sm:text-[16.5px]">
-                  Choose what matters — battery over camera, portability over raw speed — and
-                  every score, ranking and verdict recalculates around you. Then edit the specs,
-                  add your own devices, and make the catalogue yours.
+                <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-muted">
+                  Set what matters — battery over camera, portability over speed — and every
+                  score, ranking and verdict recalculates around you.
                 </p>
-                <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-                  <Button
-                    size="lg"
-                    variant="primary"
-                    iconRight="ArrowRight"
-                    onClick={() => selectCategory('mobiles')}
-                  >
+                <div className="mt-6 flex flex-wrap items-center gap-2">
+                  <Button variant="primary" onClick={() => selectCategory('mobiles')}>
                     Compare phones
                   </Button>
-                  <Button size="lg" icon="Laptop" onClick={() => selectCategory('laptops')}>
-                    Compare laptops
-                  </Button>
+                  <Button onClick={() => selectCategory('laptops')}>Compare laptops</Button>
                 </div>
-                <dl className="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-                  <Stat value={String(totalDevices)} label="devices, all editable" />
-                  <Stat value={String(CATEGORIES.length)} label="categories" />
-                  <Stat value="250+" label="tracked specs" />
-                  <Stat value="0" label="accounts required" />
-                </dl>
+                <p className="tnum mt-5 text-[12px] text-faint">
+                  {totalDevices} devices across {CATEGORIES.length} categories · every spec
+                  editable · no account
+                </p>
               </>
             )}
           </div>
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6">
+      <div className="mx-auto w-full max-w-[1280px] px-4">
         {/* -------------------------------------------------- continue */}
         {recent.length > 0 && (
           <Section
-            eyebrow="Continue"
             title="Your recent comparisons"
             subtitle="Priority weights are remembered per category, so these open exactly as you left them."
           >
-            <div className="ts-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {recent.map((comparison, index) => {
                 const category = getCategory(comparison.category)
                 return (
@@ -142,11 +120,10 @@ export function HomeScreen() {
         {/* -------------------------------------------------- suggestions */}
         {picks.length > 0 && (
           <Section
-            eyebrow="Picked for you"
             title="Worth a look"
             subtitle="Built from what you've actually opened — and it always tells you why."
           >
-            <div className="ts-stagger grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-3">
               {picks.map((pick, index) => {
                 const category = getCategory(pick.category)
                 const products = catalogue
@@ -193,7 +170,6 @@ export function HomeScreen() {
 
         {/* --------------------------------------------------- categories */}
         <Section
-          eyebrow={hasHistory ? 'Browse' : 'Step one'}
           title={hasHistory ? 'Your categories' : 'Choose a category'}
           subtitle={
             hasHistory
@@ -201,7 +177,7 @@ export function HomeScreen() {
               : 'Comparisons stay within a category so every spec is genuinely like-for-like.'
           }
         >
-          <div className="ts-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category, index) => {
               const devices = catalogue.catalogueFor(category.id)
               const stats = catalogue.statsFor(category.id)
@@ -257,11 +233,10 @@ export function HomeScreen() {
         {/* ----------------------------------------------------- matchups */}
         {!hasHistory && (
           <Section
-            eyebrow="Or skip ahead"
             title="Popular matchups"
             subtitle="Curated head-to-heads, already loaded and ready to reweight."
           >
-            <div className="ts-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {FEATURED_MATCHUPS.map((matchup, index) => {
                 const category = getCategory(matchup.category)
                 if (!category) return null
@@ -311,7 +286,7 @@ export function HomeScreen() {
         )}
 
         {/* ------------------------------------------------ how it works */}
-        <Section eyebrow="Under the hood" title="Nothing here is a black box">
+        <Section title="How it works">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <HowCard
               icon="Scale"
@@ -344,39 +319,20 @@ export function HomeScreen() {
   )
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <dt className="sr-only">{label}</dt>
-      <dd>
-        <span className="ts-display tnum block text-[26px] text-ink">{value}</span>
-        <span className="block text-[12px] text-faint">{label}</span>
-      </dd>
-    </div>
-  )
-}
-
 function Section({
-  eyebrow,
   title,
   subtitle,
   children,
 }: {
-  eyebrow?: string
   title: string
   subtitle?: string
   children: React.ReactNode
 }) {
   return (
-    <section className="py-10 sm:py-14">
-      <div className="mb-7 max-w-2xl">
-        {eyebrow && (
-          <p className="text-[11.5px] font-semibold tracking-[0.09em] text-brand-text uppercase">
-            {eyebrow}
-          </p>
-        )}
-        <h2 className="ts-display mt-2 text-[25px] text-ink sm:text-[29px]">{title}</h2>
-        {subtitle && <p className="mt-2.5 text-[14px] leading-relaxed text-muted">{subtitle}</p>}
+    <section className="py-7">
+      <div className="mb-4 max-w-2xl">
+        <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
+        {subtitle && <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{subtitle}</p>}
       </div>
       {children}
     </section>
