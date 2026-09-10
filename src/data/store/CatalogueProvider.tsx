@@ -59,7 +59,14 @@ const CatalogueContext = createContext<CatalogueValue | null>(null)
 
 type OverlayMap = Partial<Record<CategoryId, CatalogueOverlay>>
 
-export function CatalogueProvider({ children }: { children: ReactNode }) {
+export function CatalogueProvider({
+  children,
+  onPriceChanged,
+}: {
+  children: ReactNode
+  /** Called when an edit changes a device's price, so history can record it. */
+  onPriceChanged?: (product: Product) => void
+}) {
   const [overlays, setOverlays] = useState<OverlayMap>({})
   const [storage, setStorage] = useState<StorageStatus>('ok')
   const [ready, setReady] = useState(false)
@@ -158,6 +165,11 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
 
       const overlay = overlayOf(categoryId)
       const seed = seedFor(categoryId).find((p) => p.id === device.id)
+      const previous = catalogueFor(categoryId).find((p) => p.id === device.id)
+      // A corrected price is a real, dated event — hand it to PRICE_HISTORY.
+      if (previous && previous.price !== result.product.price) {
+        onPriceChanged?.(result.product)
+      }
 
       if (seed) {
         // Store only what differs, so a one-field change doesn't persist a
@@ -175,7 +187,7 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
       }
       return { ok: true }
     },
-    [catalogueFor, overlayOf, persist, seedFor],
+    [catalogueFor, overlayOf, persist, seedFor, onPriceChanged],
   )
 
   const removeDevice = useCallback(

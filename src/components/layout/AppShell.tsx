@@ -35,6 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   // ⌘K / Ctrl+K anywhere; / opens the palette when not typing in a field.
+  useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null
       const typing =
