@@ -32,14 +32,14 @@ account, budget, key, or a decision) · **N/A** (not executable in a codebase)
 | 11 | Affiliate "Buy" buttons with affiliate IDs | BLOCKED | Needs an Amazon Associates tag (or equivalent) |
 | 12 | Responsive, uncluttered UI, clear CTAs | DONE | |
 | 13 | Spec tooltips / help text for jargon | DONE | `InfoHint` on spec definitions |
-| 14 | SEO "Best of" and buying-guide content pages | TODO | Generatable from the catalogue |
+| 14 | SEO "Best of" and buying-guide content pages | DONE | Generated buying guides at `?v=collection` — one per persona plus a budget cut |
 
 ## § Key Features — Advanced (v1/v2)
 
 | # | Item | Status | Note |
 |---|---|---|---|
 | 15 | Real-time price from retailers / price APIs | BLOCKED | Needs a paid price API or merchant feed |
-| 16 | Price history charts per product | TODO | Schema + chart buildable now; live points need #15 |
+| 16 | Price history charts per product | DONE | PRICE_HISTORY panel with sparkline once a second reading exists |
 | 17 | Filter by price | DONE | |
 | 18 | User accounts, watchlists, price alerts | PARTIAL | Local profile exists; real auth needs a backend |
 | 19 | User reviews & ratings | BLOCKED | Needs a backend to store submissions |
@@ -74,7 +74,7 @@ account, budget, key, or a decision) · **N/A** (not executable in a codebase)
 | 38 | Video reviews & testimonials | BLOCKED | Media production |
 | 39 | Data-visualisation infographics | TODO | |
 | 40 | Real-time community polls | BLOCKED | Needs a backend |
-| 41 | Recommendation quiz / wizard | TODO | Buildable on the existing scoring engine |
+| 41 | Recommendation quiz / wizard | DONE | Three-question wizard, all questions generated from the category schema |
 | 42 | Price-drop alerts (email/Telegram) | BLOCKED | Needs a backend + price feed |
 | 43 | VR/AR previews | BLOCKED | Long-term, per the report |
 | 44 | Social sharing widgets | PARTIAL | Share link exists; no share images |
@@ -101,10 +101,10 @@ The report's ER diagram specifies seven entities. Current coverage:
 | 53 | PRODUCT | DONE |
 | 54 | SPECIFICATION | DONE |
 | 55 | CATEGORY | DONE |
-| 56 | PRICE_HISTORY | TODO |
+| 56 | PRICE_HISTORY | DONE | Implemented per the report ER diagram |
 | 57 | USER | PARTIAL — local profile, no identity |
-| 58 | COMPARISON | TODO — saved comparisons as a first-class entity |
-| 59 | COMPARISON_ITEM | TODO |
+| 58 | COMPARISON | DONE | Saved comparisons with frozen priority weights |
+| 59 | COMPARISON_ITEM | DONE | Implemented per the report ER diagram |
 
 ## § Technical Architecture
 
@@ -148,11 +148,11 @@ The report's ER diagram specifies seven entities. Current coverage:
 
 | # | Item | Status |
 |---|---|---|
-| 83 | Unique in-depth content | TODO — generatable comparison pages |
-| 84 | Keyword targeting in titles/meta | TODO |
-| 85 | schema.org structured data (Product, Review) | TODO |
-| 86 | Well-formatted posts | TODO |
-| 87 | Internal linking | TODO |
+| 83 | Unique in-depth content | DONE | Guides are generated from the catalogue, so they cannot go stale |
+| 84 | Keyword targeting in titles/meta | DONE | Per-page title and meta description on compare and collection screens |
+| 85 | schema.org structured data (Product, Review) | DONE | Product + ItemList JSON-LD |
+| 86 | Well-formatted posts | DONE | Guides carry a premise, stated weights and a reason per entry |
+| 87 | Internal linking | DONE | Guides cross-link to sibling guides; picker links into guides |
 | 88 | User engagement / comments | BLOCKED — needs a backend |
 | 89 | Mobile-first speed & UX | DONE |
 | 90 | hreflang / localisation | TODO — depends on 24 |
