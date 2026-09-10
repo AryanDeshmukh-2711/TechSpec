@@ -16,6 +16,8 @@ import { Badge, Button, Chip, EmptyState } from '@/components/ui/primitives'
 import { DualRange } from '@/components/ui/DualRange'
 import { AddDeviceCard, ProductCard, ProductCardSkeleton } from './ProductCard'
 import { CompareTray } from './CompareTray'
+import { RecommendWizard } from '@/components/quiz/RecommendWizard'
+import { collectionsFor } from '@/lib/collections'
 
 export function PickerScreen({ category }: { category: Category }) {
   const {
@@ -31,10 +33,14 @@ export function PickerScreen({ category }: { category: Category }) {
     clearSelection,
     goCompare,
     openEditorFor,
+    setPriorities,
+    startMatchup,
+    openCollection,
   } = useAppState()
   const store = useCatalogue()
 
   const [showFilters, setShowFilters] = useState(false)
+  const [wizardOpen, setWizardOpen] = useState(false)
 
   const brands = useMemo(() => brandsOf(catalogue), [catalogue])
   const [priceFloor, priceCeiling] = useMemo(() => priceBoundsOf(catalogue), [catalogue])
@@ -47,6 +53,13 @@ export function PickerScreen({ category }: { category: Category }) {
   const results = useMemo(
     () => (loadState === 'ready' ? applyFilters(category, catalogue, filters) : []),
     [category, catalogue, filters, loadState],
+  )
+
+  // Generated buying guides — cheap to build and they keep the picker from
+  // being the only way in.
+  const guides = useMemo(
+    () => (loadState === 'ready' ? collectionsFor(category, catalogue, 3).slice(0, 4) : []),
+    [category, catalogue, loadState],
   )
 
   const filterCount = activeFilterCount(filters)
@@ -86,6 +99,10 @@ export function PickerScreen({ category }: { category: Category }) {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button icon="Wand" variant="primary" onClick={() => setWizardOpen(true)}>
+              <span className="hidden sm:inline">Help me choose</span>
+              <span className="sm:hidden">Choose</span>
+            </Button>
             <Button icon="Plus" variant="secondary" onClick={() => openEditorFor(null)}>
               <span className="hidden sm:inline">Add {category.singular}</span>
               <span className="sm:hidden">Add</span>
@@ -146,6 +163,27 @@ export function PickerScreen({ category }: { category: Category }) {
             />
           </div>
         </div>
+
+        {/* --------------------------------------------------------- guides */}
+        {guides.length > 0 && filters.query === '' && filterCount === 0 && (
+          <div className="ts-scroll-x ts-no-scrollbar mt-4 flex gap-2 pb-1">
+            <span className="flex shrink-0 items-center gap-1.5 pr-1 text-[11.5px] font-medium tracking-wide text-faint uppercase">
+              <Icon name="Bookmark" size={12} />
+              Guides
+            </span>
+            {guides.map((guide) => (
+              <button
+                key={guide.key}
+                type="button"
+                onClick={() => openCollection(category.id, guide.key)}
+                className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 text-[12px] font-medium text-muted transition-colors hover:border-line-strong hover:text-ink"
+              >
+                {guide.title}
+                <Icon name="ArrowRight" size={11} className="text-faint" />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* ----------------------------------------------------- quick chips */}
         <div className="ts-scroll-x ts-no-scrollbar mt-4 flex items-center gap-2 pb-1">
@@ -275,6 +313,18 @@ export function PickerScreen({ category }: { category: Category }) {
           </div>
         </div>
       </div>
+
+      <RecommendWizard
+        category={category}
+        catalogue={catalogue}
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onCompare={(ids, weights) => {
+          setPriorities(weights)
+          startMatchup(category.id, ids)
+        }}
+        onApplyWeights={setPriorities}
+      />
 
       <div className="mt-8">
         <CompareTray
