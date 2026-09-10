@@ -12,6 +12,8 @@ export interface UrlState {
   category: CategoryId | null
   selection: string[]
   priorities: Record<string, number>
+  /** Which generated collection is open, when screen is 'collection'. */
+  collection?: string
 }
 
 export const DEFAULT_URL_STATE: UrlState = {
@@ -21,7 +23,7 @@ export const DEFAULT_URL_STATE: UrlState = {
   priorities: {},
 }
 
-const VALID_SCREENS: Screen[] = ['home', 'picker', 'compare']
+const VALID_SCREENS: Screen[] = ['home', 'picker', 'compare', 'collection']
 
 export function parseUrl(search: string = window.location.search): UrlState {
   const params = new URLSearchParams(search)
@@ -43,7 +45,9 @@ export function parseUrl(search: string = window.location.search): UrlState {
     if (key && Number.isFinite(n)) priorities[key] = Math.min(10, Math.max(0, n))
   }
 
-  return { screen, category, selection, priorities }
+  const collection = params.get('k') ?? undefined
+
+  return { screen, category, selection, priorities, ...(collection ? { collection } : {}) }
 }
 
 export function buildSearch(state: UrlState): string {
@@ -51,6 +55,7 @@ export function buildSearch(state: UrlState): string {
   if (state.screen !== 'home') params.set('v', state.screen)
   if (state.category) params.set('c', state.category)
   if (state.selection.length) params.set('p', state.selection.join(','))
+  if (state.collection) params.set('k', state.collection)
 
   // Only serialise priorities the user actually moved off the default.
   const moved = Object.entries(state.priorities).filter(([, v]) => v !== 5)
