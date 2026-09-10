@@ -17,7 +17,7 @@ export default defineConfig({
   test: {
     // jsdom only where a test touches the DOM (urlState reads window.location).
     environment: 'jsdom',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
     reporters: 'dot',
   },
 })
