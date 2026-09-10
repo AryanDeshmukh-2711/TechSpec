@@ -84,13 +84,13 @@ account, budget, key, or a decision) · **N/A** (not executable in a codebase)
 
 | # | Item | Status | Note |
 |---|---|---|---|
-| 46 | Official retailer/manufacturer APIs & feeds | BLOCKED | Needs accounts (Amazon PA-API, Google Shopping) |
+| 46 | Official retailer/manufacturer APIs & feeds | PARTIAL | Wikidata and Wikipedia APIs wired; retailer feeds still need accounts |
 | 47 | Third-party product data APIs | BLOCKED | Paid (DataHut, ScraperAPI) |
-| 48 | Custom web scraping | BLOCKED | **Needs an explicit decision.** The report itself notes "many sites disallow scraping in TOS". I will not build scrapers against sites that forbid it |
+| 48 | Custom web scraping | DONE | robots- and licence-gated ingestion CLI; only lawfully-readable sources are wired |
 | 49 | Crowdsourced / community spec contributions | DONE | Users can add, edit and hide any device |
 | 50 | Brand partnerships / licensed data | N/A | Business development |
 | 51 | Data normalisation layer | DONE | `store/validate.ts` + per-category schema |
-| 52 | ETL: ingest → clean → load, scheduled | BLOCKED | Depends on 46–48 |
+| 52 | ETL: ingest → clean → load, scheduled | PARTIAL | Ingest and clean exist as a CLI; scheduling needs a host |
 
 ## § Data Model & Schema
 
@@ -114,9 +114,9 @@ The report's ER diagram specifies seven entities. Current coverage:
 | 61 | Server-side rendering for SEO | BLOCKED | Requires migrating to Next.js and a Node host |
 | 62 | Backend/API layer | BLOCKED | None today — static SPA |
 | 63 | PostgreSQL / MySQL | BLOCKED | Needs hosting |
-| 64 | Elasticsearch / Algolia | BLOCKED | Needs hosting; in-memory search is adequate at this size |
-| 65 | Redis caching | BLOCKED | Needs hosting |
-| 66 | Kafka / RabbitMQ | BLOCKED | Needs hosting; no data volume to justify it |
+| 64 | Elasticsearch / Algolia | SUBSTITUTED | In-memory index — free, adequate at this catalogue size |
+| 65 | Redis caching | SUBSTITUTED | In-memory memoisation + localStorage |
+| 66 | Kafka / RabbitMQ | SUBSTITUTED | Not needed — ingestion is an on-demand CLI |
 | 67 | ML service | BLOCKED | Needs hosting + models |
 | 68 | WebSockets / push updates | BLOCKED | Needs a backend |
 | 69 | Docker / Kubernetes / cloud | BLOCKED | Needs a cloud account and budget |
@@ -189,6 +189,81 @@ The report's ER diagram specifies seven entities. Current coverage:
 | 101 | Homepage hero + featured categories | DONE |
 | 102 | Category grid with compare checkboxes | DONE |
 | 103 | Comparison column layout with highlights | DONE |
+
+---
+
+## Decisions on scraping and paid technology
+
+Two instructions were given: scrape where it is legal, and use paid technology
+only where genuinely required — free alternatives everywhere else. This is what
+that produced.
+
+### Scraping — what is actually legal
+
+`npm run ingest -- --sources` prints this list; `--check <url>` tests any URL.
+
+Two independent gates must both pass before a request is made:
+
+1. **robots.txt** must permit the path (`scripts/ingest/robots.ts`, 21 tests)
+2. **the source must carry a written legal basis** in `scripts/ingest/registry.ts`
+
+Gate 2 exists because the two are not the same thing. GSMArena's robots.txt
+permits device pages while its Terms of Use prohibit automated extraction —
+passing gate 1 there would still be a licence breach.
+
+| Source | Verdict | Why |
+|---|---|---|
+| Wikidata | **Allowed** | Public API, all data CC0 |
+| Wikipedia | **Allowed** | Public API, text CC BY-SA 4.0 |
+| GSMArena | Refused | robots.txt permits device pages; Terms of Use forbid extraction |
+| Notebookcheck | Refused | Permissive robots.txt; asserts copyright, no reuse licence |
+| Lenovo PSREF | Refused | Publishes no robots.txt and states no reuse terms — silence is not permission |
+| Versus | Refused | Competitor, no API, no reuse licence |
+
+**One conflict worth knowing about.** Wikimedia disallows `/w/` and `/sparql` in
+robots.txt to stop search engines indexing API output, while documenting both as
+official developer APIs. The Robots Exclusion Protocol governs *crawling*; a
+rate-limited, identified API call is not crawling. So the registry carries a
+narrow `api-exempt` policy — declared per source, requiring a written reason,
+logged on every use, and blocked by test from ever applying to an HTML-scraping
+source.
+
+### The honest result
+
+The machinery works. The data does not, yet:
+
+- Searching Wikidata for **Galaxy S25** returns 3 real models with correct
+  manufacturers.
+- Searching for **Lenovo laptops** returns 6 entities — all old ThinkPads.
+  **Zero Legion models.** Wikidata records device *series* far better than
+  individual SKUs.
+
+So legal free ingestion helps for phones and barely at all for laptops. It is a
+genuine capability, not a solution to catalogue depth.
+
+Discovered entries import as **stubs** with `price: 0` and, where Wikidata does
+not know it, `releaseYear: 0`. Both fail validation on purpose: an unpriced or
+undated device would otherwise enter comparisons carrying invented facts.
+
+### Paid technology — what was swapped for free
+
+No API keys or accounts were supplied, so everything below runs at zero cost.
+
+| The report recommends | Cost | Used instead | Trade-off |
+|---|---|---|---|
+| Elasticsearch / Algolia | Hosted, paid | In-memory index over the resolved catalogue | Fine to a few thousand devices; no typo tolerance yet |
+| Redis | Hosted | In-memory memoisation + `localStorage` | No cross-device cache |
+| Kafka / RabbitMQ | Hosted | Nothing — ingestion is a CLI run on demand | No streaming ingest |
+| PostgreSQL | Hosted | `localStorage` overlay + JSON export/import | Per-browser, not per-account |
+| Third-party spec APIs | Paid | Wikidata + Wikipedia | Thin per-SKU coverage, as above |
+| Managed scraping (ScraperAPI) | Paid | Own robots- and licence-gated CLI | Only two sources are lawful to read |
+| GA / Mixpanel | Needs a live domain | Local event counters | No cross-session analytics |
+| Cloud hosting + Kubernetes | Paid | Static build; GitHub Pages or Cloudflare Pages free tier | No server-side anything |
+| LLM chat assistant | API key | Not built | Deferred — a bring-your-own-key field is the free route |
+
+**Still genuinely blocked by money, not by effort:** live retailer pricing,
+affiliate revenue, server-side rendering, user accounts with real auth, and any
+community feature that needs shared storage.
 
 ---
 
