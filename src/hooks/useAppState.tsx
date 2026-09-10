@@ -33,6 +33,7 @@ interface AppStateValue {
   toast: string | null
   selected: Product[]
   editorTarget: EditorTarget
+  collectionKey: string | null
 
   selectCategory: (id: CategoryId) => void
   toggleProduct: (id: string) => void
@@ -51,6 +52,7 @@ interface AppStateValue {
   showToast: (message: string) => void
   openEditorFor: (product: Product | null) => void
   closeEditor: () => void
+  openCollection: (category: CategoryId, key: string) => void
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null)
@@ -67,6 +69,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<PickerFilters>(EMPTY_FILTERS)
   const [toast, setToast] = useState<string | null>(null)
   const [editorTarget, setEditorTarget] = useState<EditorTarget>(undefined)
+  const [collectionKey, setCollectionKey] = useState<string | null>(
+    initial.collection ?? null,
+  )
   const toastTimer = useRef<number | undefined>(undefined)
 
   /* ------------------------------------------------------------- catalogue */
@@ -117,11 +122,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const navKey = `${screen}|${categoryId ?? ''}|${selection.join(',')}`
     const isNavigation = lastNavKey.current !== null && lastNavKey.current !== navKey
     writeUrl(
-      { screen, category: categoryId, selection, priorities },
+      {
+        screen,
+        category: categoryId,
+        selection,
+        priorities,
+        ...(collectionKey ? { collection: collectionKey } : {}),
+      },
       isNavigation ? 'push' : 'replace',
     )
     lastNavKey.current = navKey
-  }, [screen, categoryId, selection, priorities])
+  }, [screen, categoryId, selection, priorities, collectionKey])
 
   useEffect(() => {
     const onPopState = () => {
@@ -129,6 +140,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setScreen(next.screen)
       setCategoryId(next.category)
       setSelectionState(next.selection)
+      setCollectionKey(next.collection ?? null)
       if (Object.keys(next.priorities).length) setPrioritiesState(next.priorities)
     }
     window.addEventListener('popstate', onPopState)
@@ -227,6 +239,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
 
+  const openCollection = useCallback((category: CategoryId, key: string) => {
+    setCategoryId(category)
+    setCollectionKey(key)
+    setScreen('collection')
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [])
+
   const openEditorFor = useCallback((product: Product | null) => setEditorTarget(product), [])
   const closeEditor = useCallback(() => setEditorTarget(undefined), [])
 
@@ -242,7 +261,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppStateValue>(
     () => ({
       screen, categoryId, selection, priorities, filters, catalogue, loadState, toast,
-      selected, editorTarget,
+      selected, editorTarget, collectionKey,
+      openCollection,
       selectCategory, toggleProduct, removeProduct, clearSelection, setSelection,
       setPriority, setPriorities: setPrioritiesState, resetPriorities, patchFilters,
       resetFilters, goHome, goPicker, goCompare, startMatchup, showToast,
@@ -250,7 +270,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }),
     [
       screen, categoryId, selection, priorities, filters, catalogue, loadState, toast,
-      selected, editorTarget, selectCategory, toggleProduct, removeProduct, clearSelection,
+      selected, editorTarget, collectionKey, openCollection,
+      selectCategory, toggleProduct, removeProduct, clearSelection,
       setSelection, setPriority, resetPriorities, patchFilters, resetFilters, goHome,
       goPicker, goCompare, startMatchup, showToast, openEditorFor, closeEditor,
     ],

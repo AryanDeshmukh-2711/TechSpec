@@ -8,10 +8,11 @@ import { AppShell } from '@/components/layout/AppShell'
 import { HomeScreen } from '@/components/home/HomeScreen'
 import { PickerScreen } from '@/components/picker/PickerScreen'
 import { CompareScreen } from '@/components/compare/CompareScreen'
+import { CollectionScreen } from '@/components/collections/CollectionScreen'
 import { DeviceEditor } from '@/components/devices/DeviceEditor'
 
 function Router() {
-  const { screen, categoryId, editorTarget, closeEditor, showToast, toggleProduct, selection } =
+  const { screen, categoryId, editorTarget, closeEditor, showToast, toggleProduct, selection, collectionKey } =
     useAppState()
   const category = getCategory(categoryId)
 
@@ -22,6 +23,8 @@ function Router() {
       <HomeScreen />
     ) : screen === 'picker' ? (
       <PickerScreen category={category} />
+    ) : screen === 'collection' && collectionKey ? (
+      <CollectionScreen category={category} collectionKey={collectionKey} />
     ) : (
       <CompareScreen category={category} />
     )

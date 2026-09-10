@@ -167,7 +167,7 @@ export interface PersonaVerdict {
 
 /* ------------------------------------------------------------- app state */
 
-export type Screen = 'home' | 'picker' | 'compare'
+export type Screen = 'home' | 'picker' | 'compare' | 'collection'
 
 export type SortKey =
   | 'relevance'
