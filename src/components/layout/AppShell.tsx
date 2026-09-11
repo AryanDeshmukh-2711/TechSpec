@@ -22,6 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     goHome,
     goPicker,
     goCompare,
+    resetPriorities,
     toast,
     showToast,
   } = useAppState()
@@ -75,13 +76,17 @@ export function AppShell({ children }: { children: ReactNode }) {
               keywords: 'privacy reset forget storage',
               run: () => {
                 forgetEverything()
-                showToast('History cleared')
+                // The sliders hold their own copy of the weights, so clearing
+                // storage alone would leave them on screen — and write them
+                // straight back the next time one moved.
+                resetPriorities()
+                showToast('History and priorities cleared')
               },
             } satisfies Command,
           ]
         : []),
     ],
-    [goHome, theme, toggle, hasHistory, forgetEverything, showToast],
+    [goHome, theme, toggle, hasHistory, forgetEverything, resetPriorities, showToast],
   )
 
   return (

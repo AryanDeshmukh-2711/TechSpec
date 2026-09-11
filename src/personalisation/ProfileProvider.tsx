@@ -13,6 +13,7 @@ import {
   clearProfile,
   emptyProfile,
   favouritePersona,
+  forgetPriorities as dropPriorities,
   hasHistory,
   loadProfile,
   rankCategories,
@@ -29,11 +30,13 @@ import {
 interface ProfileValue {
   profile: UserProfile
   /**
-   * False until the stored profile has been read. Consumers must not record
-   * into the profile, or read remembered values out of it, before this flips:
-   * effects run child-first, so a child's mount effect fires *before* this
-   * provider has hydrated, and anything it wrote would be overwritten by the
-   * load — or read back as empty.
+   * False until the stored profile has been read.
+   *
+   * Effects run child-first, so a consumer's mount effect fires *before* this
+   * provider has hydrated. A read taken then comes back empty — which is how
+   * one-shot priority seeding silently replaced remembered weights with
+   * neutral defaults. A write taken then is merely wasted, since the load
+   * replaces it. Consumers must wait for this before doing either.
    */
   ready: boolean
   hasHistory: boolean
@@ -41,6 +44,7 @@ interface ProfileValue {
   noteComparison: (category: CategoryId, products: Product[]) => void
   notePersona: (personaId: string) => void
   savePriorities: (category: CategoryId, priorities: Record<string, number>) => void
+  forgetPriorities: (category: CategoryId) => void
   prioritiesFor: (category: CategoryId) => Record<string, number> | undefined
   orderedCategories: (all: CategoryId[]) => CategoryId[]
   affinity: (lookup: (id: string) => Product | undefined) => Record<string, number>
@@ -92,6 +96,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  const forgetPriorities = useCallback((category: CategoryId) => {
+    setProfile((current) => dropPriorities(current, category))
+  }, [])
+
   const prioritiesFor = useCallback(
     (category: CategoryId) => profile.priorities[category],
     [profile.priorities],
@@ -130,6 +138,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       noteComparison,
       notePersona,
       savePriorities,
+      forgetPriorities,
       prioritiesFor,
       orderedCategories,
       affinity,
@@ -139,7 +148,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       forgetEverything,
     }),
     [
-      profile, hydrated, noteView, noteComparison, notePersona, savePriorities, prioritiesFor,
+      profile, hydrated, noteView, noteComparison, notePersona, savePriorities,
+      forgetPriorities, prioritiesFor,
       orderedCategories, affinity, suggestions, markOnboarded, forgetEverything,
     ],
   )

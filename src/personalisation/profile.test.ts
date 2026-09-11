@@ -6,6 +6,7 @@ import {
   clearProfile,
   emptyProfile,
   favouritePersona,
+  forgetPriorities,
   hasHistory,
   loadProfile,
   rankCategories,
@@ -201,5 +202,24 @@ describe('persistence', () => {
     saveProfile(recordView(emptyProfile(), byId('slow')))
     clearProfile()
     expect(hasHistory(loadProfile())).toBe(false)
+  })
+})
+
+describe('forgetPriorities', () => {
+  it('removes a remembered set of weights', () => {
+    const profile = rememberPriorities(emptyProfile(), 'mobiles', { camera: 9 })
+    expect(forgetPriorities(profile, 'mobiles').priorities.mobiles).toBeUndefined()
+  })
+
+  it('leaves other categories alone', () => {
+    let profile = rememberPriorities(emptyProfile(), 'mobiles', { camera: 9 })
+    profile = rememberPriorities(profile, 'laptops', { graphics: 8 })
+    expect(forgetPriorities(profile, 'mobiles').priorities.laptops).toEqual({ graphics: 8 })
+  })
+
+  it('returns the same profile when there is nothing to forget', () => {
+    const profile = emptyProfile()
+    // Identity, not equality: a new object would re-run every memo downstream.
+    expect(forgetPriorities(profile, 'mobiles')).toBe(profile)
   })
 })
