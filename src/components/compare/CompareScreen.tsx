@@ -6,7 +6,7 @@ import { applyDealBreakers, computePersonaVerdicts, scoreProducts } from '@/lib/
 import { seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
-import { Button, Disclosure, EmptyState, Skeleton, Switch } from '@/components/ui/primitives'
+import { Button, Disclosure, EmptyState, Switch } from '@/components/ui/primitives'
 import { RadarChart, type RadarSeries } from '@/components/charts/RadarChart'
 import { ValueScatter } from '@/components/charts/ValueScatter'
 import { ProductColumns } from './ProductColumns'
@@ -24,7 +24,6 @@ import { comparisonSchema } from '@/lib/structuredData'
 export function CompareScreen({ category }: { category: Category }) {
   const {
     catalogue,
-    loadState,
     selected,
     priorities,
     setPriority,
@@ -42,10 +41,8 @@ export function CompareScreen({ category }: { category: Category }) {
 
   const scored = useMemo(
     () =>
-      loadState === 'ready' && selected.length
-        ? scoreProducts(category, catalogue, selected, { priorities })
-        : [],
-    [category, catalogue, selected, priorities, loadState],
+      selected.length ? scoreProducts(category, catalogue, selected, { priorities }) : [],
+    [category, catalogue, selected, priorities],
   )
 
   // Must-haves gate the ranking and every verdict, but never the spec table:
@@ -78,10 +75,6 @@ export function CompareScreen({ category }: { category: Category }) {
   )
 
   /* --------------------------------------------------------------- states */
-
-  if (loadState === 'loading' || loadState === 'idle') {
-    return <CompareSkeleton />
-  }
 
   if (selected.length < MIN_SELECTION) {
     return (
@@ -294,24 +287,6 @@ export function CompareScreen({ category }: { category: Category }) {
             options={{ differencesOnly, biggestGapsFirst }}
           />
         </Disclosure>
-      </div>
-    </div>
-  )
-}
-
-function CompareSkeleton() {
-  return (
-    <div className="mx-auto w-full max-w-[1280px] px-4 pt-8">
-      <Skeleton className="h-8 w-2/3 max-w-lg" />
-      <Skeleton className="mt-3 h-3 w-52" />
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_0.85fr]">
-        <Skeleton className="h-72" />
-        <Skeleton className="h-72" />
-      </div>
-      <Skeleton className="mt-4 h-56" />
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Skeleton className="h-80" />
-        <Skeleton className="h-80" />
       </div>
     </div>
   )

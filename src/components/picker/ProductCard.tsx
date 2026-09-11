@@ -97,31 +97,3 @@ export function ProductCard({
     </article>
   )
 }
-
-export function ProductCardSkeleton() {
-  return (
-    <div className="ts-card overflow-hidden">
-      <div className="flex gap-3 p-4 pb-3">
-        <div className="ts-shimmer h-[68px] w-[54px] shrink-0" />
-        <div className="flex-1 space-y-2">
-          <div className="ts-shimmer h-2.5 w-16" />
-          <div className="ts-shimmer h-4 w-3/4" />
-          <div className="ts-shimmer h-2.5 w-20" />
-          <div className="ts-shimmer h-2.5 w-full" />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4 border-t border-line px-4 py-3">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="space-y-1.5">
-            <div className="ts-shimmer h-2 w-12" />
-            <div className="ts-shimmer h-3 w-16" />
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center justify-between border-t border-line px-4 py-3">
-        <div className="ts-shimmer h-5 w-16" />
-        <div className="ts-shimmer h-10 w-28 rounded-xl" />
-      </div>
-    </div>
-  )
-}

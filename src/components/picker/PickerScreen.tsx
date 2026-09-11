@@ -13,7 +13,7 @@ import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
 import { Button, Chip, EmptyState } from '@/components/ui/primitives'
 import { DualRange } from '@/components/ui/DualRange'
-import { ProductCard, ProductCardSkeleton } from './ProductCard'
+import { ProductCard } from './ProductCard'
 import { CompareTray } from './CompareTray'
 import { RecommendWizard } from '@/components/quiz/RecommendWizard'
 import { collectionsFor } from '@/lib/collections'
@@ -21,7 +21,6 @@ import { collectionsFor } from '@/lib/collections'
 export function PickerScreen({ category }: { category: Category }) {
   const {
     catalogue,
-    loadState,
     filters,
     patchFilters,
     resetFilters,
@@ -31,6 +30,7 @@ export function PickerScreen({ category }: { category: Category }) {
     removeProduct,
     clearSelection,
     goCompare,
+    goHome,
     setPriorities,
     startMatchup,
     openCollection,
@@ -48,15 +48,15 @@ export function PickerScreen({ category }: { category: Category }) {
   ]
 
   const results = useMemo(
-    () => (loadState === 'ready' ? applyFilters(category, catalogue, filters) : []),
-    [category, catalogue, filters, loadState],
+    () => applyFilters(category, catalogue, filters),
+    [category, catalogue, filters],
   )
 
   // Generated buying guides — cheap to build and they keep the picker from
   // being the only way in.
   const guides = useMemo(
-    () => (loadState === 'ready' ? collectionsFor(category, catalogue, 3).slice(0, 4) : []),
-    [category, catalogue, loadState],
+    () => collectionsFor(category, catalogue, 3).slice(0, 4),
+    [category, catalogue],
   )
 
   const filterCount = activeFilterCount(filters)
@@ -232,37 +232,44 @@ export function PickerScreen({ category }: { category: Category }) {
           />
 
           <div className="min-w-0">
-            {loadState === 'ready' && (
-              <p className="mb-4 text-[12.5px] text-faint" aria-live="polite">
-                {results.length === catalogue.length
-                  ? `${results.length} ${results.length === 1 ? category.singular : category.plural}`
-                  : `${results.length} of ${catalogue.length} ${category.plural}`}
-                {atCapacity && ' · comparison slots full'}
-              </p>
-            )}
+            <p className="mb-4 text-[12.5px] text-faint" aria-live="polite">
+              {results.length === catalogue.length
+                ? `${results.length} ${results.length === 1 ? category.singular : category.plural}`
+                : `${results.length} of ${catalogue.length} ${category.plural}`}
+              {atCapacity && ' · comparison slots full'}
+            </p>
 
-            {loadState !== 'ready' ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 6 }, (_, i) => (
-                  <ProductCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : results.length === 0 ? (
+            {results.length === 0 ? (
               <div className="ts-card">
-                <EmptyState
-                  icon="Search"
-                  title="No matches"
-                  description={
-                    filters.query
-                      ? `Nothing matches “${filters.query}” with these filters.`
-                      : 'Nothing matches the current filters. Try widening the price range or clearing a chip.'
-                  }
-                  action={
-                    <Button variant="primary" icon="RotateCcw" onClick={resetFilters}>
-                      Clear all filters
-                    </Button>
-                  }
-                />
+                {/* An empty category and an over-narrow filter both show
+                    nothing, but only one of them is the user's to fix. */}
+                {catalogue.length === 0 ? (
+                  <EmptyState
+                    icon="CircleAlert"
+                    title={`No ${category.plural} in the catalogue`}
+                    description={`This category has no devices to compare yet. Nothing you change here will help — pick another category instead.`}
+                    action={
+                      <Button variant="primary" icon="ArrowLeft" onClick={goHome}>
+                        Choose a category
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <EmptyState
+                    icon="Search"
+                    title="No matches"
+                    description={
+                      filters.query
+                        ? `Nothing matches “${filters.query}” with these filters.`
+                        : 'Nothing matches the current filters. Try widening the price range or clearing a chip.'
+                    }
+                    action={
+                      <Button variant="primary" icon="RotateCcw" onClick={resetFilters}>
+                        Clear all filters
+                      </Button>
+                    }
+                  />
+                )}
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

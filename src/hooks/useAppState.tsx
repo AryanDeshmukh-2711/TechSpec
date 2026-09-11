@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { CategoryId, LoadState, PickerFilters, Product, Screen } from '@/types'
+import type { CategoryId, PickerFilters, Product, Screen } from '@/types'
 import { catalogueFor, getCategory } from '@/data'
 import { useProfile } from '@/personalisation/ProfileProvider'
 import { EMPTY_FILTERS } from '@/lib/filters'
@@ -25,7 +25,6 @@ interface AppStateValue {
   priorities: Record<string, number>
   filters: PickerFilters
   catalogue: Product[]
-  loadState: LoadState
   toast: string | null
   selected: Product[]
   collectionKey: string | null
@@ -71,8 +70,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // The catalogue is bundled with the app, so there is nothing to wait for —
   // picking a category is the only thing that makes it non-empty.
   const catalogue = useMemo(() => catalogueFor(categoryId), [categoryId])
-
-  const loadState: LoadState = categoryId ? 'ready' : 'idle'
 
   /* ------------------------------------------------------------ priorities */
 
@@ -292,7 +289,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppStateValue>(
     () => ({
-      screen, categoryId, selection, priorities, filters, catalogue, loadState, toast,
+      screen, categoryId, selection, priorities, filters, catalogue, toast,
       selected, collectionKey,
       openCollection,
       selectCategory, toggleProduct, removeProduct, clearSelection, setSelection,
@@ -300,7 +297,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       resetFilters, goHome, goPicker, goCompare, startMatchup, showDevice, showToast,
     }),
     [
-      screen, categoryId, selection, priorities, filters, catalogue, loadState, toast,
+      screen, categoryId, selection, priorities, filters, catalogue, toast,
       selected, collectionKey, openCollection,
       selectCategory, toggleProduct, removeProduct, clearSelection,
       setSelection, setPriority, resetPriorities, patchFilters, resetFilters, goHome,

@@ -265,12 +265,6 @@ export function InfoHint({ text }: { text: string }) {
   )
 }
 
-/* ------------------------------------------------------------ Skeleton */
-
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('ts-shimmer rounded-xl', className)} />
-}
-
 /* ---------------------------------------------------------- EmptyState */
 
 export function EmptyState({
@@ -450,7 +444,6 @@ export function Disclosure({
         </span>
       </button>
 
-      {/* Printed output always shows the full section. */}
       <div
         id={panelId}
         className={cn('border-t border-line px-4 py-4', !open && 'hidden')}

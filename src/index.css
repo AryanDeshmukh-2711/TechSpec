@@ -198,32 +198,12 @@
     scrollbar-width: none;
   }
 
-  .ts-shimmer {
-    background: linear-gradient(
-      90deg,
-      var(--ts-surface-2) 25%,
-      var(--ts-surface-3) 37%,
-      var(--ts-surface-2) 63%
-    );
-    background-size: 400% 100%;
-    animation: ts-shimmer 1.4s ease-in-out infinite;
-  }
-
   .ts-fade {
     animation: ts-fade 0.16s ease-out both;
   }
 
   .ts-pop {
     animation: ts-pop 0.16s ease-out both;
-  }
-}
-
-@keyframes ts-shimmer {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0 50%;
   }
 }
 
