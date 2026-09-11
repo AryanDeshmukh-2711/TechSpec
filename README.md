@@ -26,7 +26,6 @@ npm run dev
 | Personas | — | Six independent buyer weightings, one tap to load |
 | Auditability | Trust the number | **Open any pillar** and see the specs, weights and points behind it |
 | Hard requirements | Filters, at browse time | **Must-haves** that disqualify at decision time, and say why |
-| The catalogue | Fixed, take it or leave it | **Yours** — edit any spec, add devices, export as JSON |
 | The home screen | Same for everyone | **Adapts to you** — your priorities, history and suggestions |
 
 The engine is the product. `src/lib/scoring.ts` is ~250 lines and fully inspectable — nothing
@@ -44,7 +43,7 @@ Home  ──►  Picker  ──►  Compare              │  (jump anywhere,
  │           │            │                  │   run any action)
  │           │            └── verdict · must-haves · priorities · charts
  │           │                personas · head-to-head · spec sheet · audit
- │           └── search · filters · sort · device grid · editor · compare tray
+ │           └── search · filters · sort · device grid · guides · compare tray
  └── personalised feed: continue · suggestions · your categories
 ```
 
@@ -54,8 +53,9 @@ but never decided on, and their categories ordered by actual use.
 
 **2. Picker** — search across name/brand/spec text, brand chips, a dual-thumb price range,
 category-specific quick filters ("120Hz+", "Has telephoto", "Dual-band GPS"), six sort modes,
-and a sticky tray that always shows five slots so the 2–5 rule needs no instructions. Every
-card is editable, and an "add your own" card sits at the end of the grid.
+and a sticky tray that always shows five slots so the 2–5 rule needs no instructions. A
+"Help me choose" wizard and generated buying guides sit above the grid for anyone who would
+rather be asked what they need than start from a list.
 
 **3. Compare** — the payoff, in deliberate reading order:
 
@@ -84,18 +84,13 @@ src/
 │   ├── filters.ts              Search scoring, filtering, sorting, cached baseline scores
 │   ├── format.ts               Spec/price/delta formatting, series colours
 │   ├── urlState.ts             URL ⇄ state (the URL *is* the app state)
-│   ├── export.ts               CSV, plain-text summary, clipboard with fallback
+│   ├── recommend.ts            Guided recommender: questions derived from the schema
+│   ├── collections.ts          Buying guides generated from the catalogue
+│   ├── clipboard.ts            Copy with a legacy fallback
 │   └── cn.ts                   Class joiner
 ├── data/
-│   ├── index.ts                Registry, SEED catalogue, group metadata
+│   ├── index.ts                Registry, catalogue, group metadata
 │   ├── shared.ts               Cross-category specs (price, release year), brand accents
-│   ├── store/                  ★ The catalogue is the user's, not ours
-│   │   ├── CatalogueProvider.tsx  Resolves seed + overlay, exposes CRUD
-│   │   ├── overlay.ts          Compose seed with edits/additions/removals
-│   │   ├── validate.ts         Runtime contract for user-supplied devices
-│   │   ├── persistence.ts      localStorage, defensively
-│   │   ├── transfer.ts         Import/export JSON with per-device validation
-│   │   └── remoteSource.ts     Pluggable API seam (unconfigured by default)
 │   └── categories/             One file per category: spec schema + pillars + personas
 │       ├── mobiles.ts          16 products · 47 specs · 7 pillars
 │       ├── laptops.ts          29 products · 38 specs · 7 pillars
@@ -107,31 +102,32 @@ src/
 │   ├── profile.ts              Remembered priorities, history, affinity, suggestions
 │   └── ProfileProvider.tsx     Local-only, no account, no network
 ├── hooks/
-│   ├── useAppState.tsx         Provider: selection, priorities, filters, editor, toast
+│   ├── useAppState.tsx         Provider: selection, priorities, filters, toast
 │   └── useMediaQuery.ts        Drives the spec table's layout switch
 └── components/
     ├── DeviceGlyph.tsx         Procedural SVG device artwork, tinted per brand
-    ├── ui/                     Button · Chip · Badge · Switch · SegmentedControl · Tooltip
-    │                           InfoHint · Skeleton · EmptyState · StarRating · DualRange · Icon
-    ├── charts/                 RadarChart · SpecBar · LabelledBar · ValueScatter · ScoreRing
-    ├── layout/                 AppShell · CommandPalette (⌘K) · CatalogueSettings
-    ├── devices/DeviceEditor.tsx  Schema-generated add/edit form
+    ├── ui/                     Button · Chip · Badge · Switch · InfoHint · Skeleton
+    │                           EmptyState · StarRating · DualRange · Modal · Disclosure · Icon
+    ├── charts/                 RadarChart · SpecBar · ValueScatter · ScoreRing
+    ├── layout/                 AppShell · CommandPalette (⌘K)
     ├── home/HomeScreen.tsx     Personalised feed
-    ├── picker/                 PickerScreen · ProductCard · AddDeviceCard · CompareTray
+    ├── quiz/RecommendWizard.tsx  Three questions, ranked answer
+    ├── collections/            Generated buying guides
+    ├── picker/                 PickerScreen · ProductCard · CompareTray
     └── compare/                CompareScreen · VerdictPanel · PriorityPanel · ProductColumns
-                                PersonaGrid · HeadToHead · SpecTable · ExportBar
+                                PersonaGrid · HeadToHead · SpecTable · ShareButton
                                 PillarBreakdown · DealBreakers · AddProduct
 ```
 
 Tests sit next to what they cover (`scoring.test.ts`, `format.test.ts`,
-`urlState.test.ts`, `data/catalogue.test.ts`, `data/store/store.test.ts`,
-`personalisation/profile.test.ts`), with a synthetic fixture category in
-`lib/__fixtures__/`.
+`urlState.test.ts`, `recommend.test.ts`, `collections.test.ts`,
+`data/catalogue.test.ts`, `personalisation/profile.test.ts`), with a synthetic
+fixture category in `lib/__fixtures__/`.
 
 ★ = the file worth reading first.
 
 **No chart library.** Radar, scatter, bars and rings are hand-drawn SVG — fully themeable,
-theme-aware, printable, and worth ~0 KB of dependency weight. Total runtime deps: `react`,
+theme-aware, and worth ~0 KB of dependency weight. Total runtime deps: `react`,
 `react-dom`, `lucide-react`.
 
 **No product photos.** `DeviceGlyph` draws a per-category silhouette tinted with the brand
@@ -139,34 +135,16 @@ accent. No licensing questions, no broken images, no inconsistent framing.
 
 ---
 
-## Your catalogue
+## What it deliberately doesn't do
 
-The bundled devices are a **seed, not a fixture**. Anything you change is kept as an *overlay*
-on top of it — so a future seed update still reaches you: you keep your edits and inherit
-corrections to everything you never touched.
+The app is a decision tool, not a data workbench. There is no spec editor, no CSV or JSON
+export, no file import, no print stylesheet and no saved-comparison library. Each of those
+asked the reader to manage the product instead of using it, and every one of them was a step
+between arriving and getting an answer.
 
-```
-seed (65 devices)  +  { edits, added, removed }  =  your catalogue
-                          ↑ localStorage, per browser
-```
-
-- **Edit any spec** on any device. Only the fields that differ are stored, so changing one
-  number doesn't persist a copy of the whole device.
-- **Add devices** we don't have. The form is generated from the category's own spec schema, so
-  it always matches what the engine reads.
-- **Hide** built-in devices you don't care about, and restore them later.
-- **Export / import** the whole thing as JSON. An import is untrusted input: bad devices are
-  rejected individually with a reason, so one typo doesn't cost you the other forty.
-- **Reset** per category or entirely.
-
-Everything is validated by the same rules in `store/validate.ts` — the editor, the importer and
-the remote adapter all go through it. A device that would silently score as zero, or carry an
-enum value the scale doesn't know, is refused with a message you can act on.
-
-`store/remoteSource.ts` is the seam for a real API. Nothing is configured by default because
-there is no free, CORS-friendly device-spec API worth depending on; point
-`VITE_CATALOGUE_ENDPOINT` at something returning the documented shape and every device flows
-through the same validation.
+The catalogue ships with the app. That makes it honest about what it knows — nothing is
+half-entered, nothing is a placeholder — and it makes every score reproducible: the same URL
+gives everyone the same numbers. Growing it is `scripts/ingest/`'s job, not the reader's.
 
 ## What it remembers
 
@@ -179,7 +157,7 @@ Local only. No account, no network, no identifier.
   two-week half-life so a phase last month doesn't outrank yesterday.
 - **Category order** — the home screen leads with what you use.
 
-Clear all of it from Settings → Clear history.
+Clear all of it from ⌘K → *Clear history and remembered priorities*.
 
 ## How the scoring works
 
@@ -225,14 +203,11 @@ product header; below `lg` it becomes a stacked per-spec comparison with mini ba
 five-column table at 375px is unreadable. One component, one set of grouping logic, two
 renderings — driven by `useIsDesktop()`.
 
-## Export & sharing
+## Sharing
 
-- **Share** — native share sheet where available, else copies a URL encoding category,
-  selection and priority weights.
-- **Copy summary** — ranked plain text, the format people actually paste into chat.
-- **CSV** — full spec matrix plus pillar scores and persona verdicts.
-- **Print / PDF** — a dedicated print stylesheet (`ts-no-print`, `ts-print-block`) forces
-  light colours, drops interactive chrome and prevents section splits.
+One button. The native share sheet where available, otherwise a copied URL encoding the
+category, the selection **and the priority weights** — so whoever opens it sees the comparison
+you saw rather than the neutral default.
 
 ## Adding a category
 
@@ -280,12 +255,12 @@ Deliberately quiet. This is a tool for reading numbers, so the interface recedes
 greys, one accent, standard radii, a single system sans. No display face, no textures, no
 glows — the data is the interest.
 
-- **A four-control header.** Where you are, search, the one action that matters now, and a
-  menu for everything else. Category navigation lives on the page and in the palette, not in a
-  bar that is on screen permanently.
+- **A four-control header.** Where you are, search, the one action that matters now, and the
+  theme. Category navigation lives on the page and in the palette, not in a bar that is on
+  screen permanently.
 - **Progressive disclosure.** A comparison opens with the verdict, the ranking and your
   priority sliders. Charts, personas, head-to-head and the full spec sheet start collapsed
-  behind one-line summaries; print forces every one of them open.
+  behind one-line summaries.
 - **⌘K everywhere** — jump to a category, find any device across every catalogue, run an action.
 - **Light-first**, with a full dark theme and no flash on load.
 - **Five-slot series palette** — every device keeps its colour across the tray, column header,
