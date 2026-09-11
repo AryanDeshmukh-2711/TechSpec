@@ -35,7 +35,7 @@ export function VerdictPanel({
   const specByKey = new Map(category.specs.map((s) => [s.key, s]))
 
   return (
-    <section className="ts-card ts-print-block overflow-hidden" aria-labelledby="verdict-heading">
+    <section className="ts-card overflow-hidden" aria-labelledby="verdict-heading">
       <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
         {/* ------------------------------------------------------- winner */}
         <div className="relative overflow-hidden p-5 sm:p-6">

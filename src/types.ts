@@ -185,5 +185,3 @@ export interface PickerFilters {
   quickFilters: string[]
   sort: SortKey
 }
-
-export type LoadState = 'idle' | 'loading' | 'ready' | 'error'

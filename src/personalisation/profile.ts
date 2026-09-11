@@ -127,6 +127,20 @@ export function recordComparison(
   }
 }
 
+/**
+ * Drop a category's remembered weights.
+ *
+ * A neutral setting is the absence of a preference, not a preference worth
+ * storing — so resetting the sliders has to remove the entry rather than
+ * overwrite it, otherwise the old weights come back on the next visit.
+ */
+export function forgetPriorities(profile: UserProfile, category: CategoryId): UserProfile {
+  if (!profile.priorities[category]) return profile
+  const priorities = { ...profile.priorities }
+  delete priorities[category]
+  return { ...profile, priorities }
+}
+
 export function rememberPriorities(
   profile: UserProfile,
   category: CategoryId,

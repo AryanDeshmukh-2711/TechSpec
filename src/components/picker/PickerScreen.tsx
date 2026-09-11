@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Category, SortKey } from '@/types'
 import { MAX_SELECTION, useAppState } from '@/hooks/useAppState'
-import { useCatalogue } from '@/data/store/CatalogueProvider'
 import {
   SORT_OPTIONS,
   activeFilterCount,
@@ -12,9 +11,9 @@ import {
 import { formatCompactPrice, seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
-import { Badge, Button, Chip, EmptyState } from '@/components/ui/primitives'
+import { Button, Chip, EmptyState } from '@/components/ui/primitives'
 import { DualRange } from '@/components/ui/DualRange'
-import { AddDeviceCard, ProductCard, ProductCardSkeleton } from './ProductCard'
+import { ProductCard } from './ProductCard'
 import { CompareTray } from './CompareTray'
 import { RecommendWizard } from '@/components/quiz/RecommendWizard'
 import { collectionsFor } from '@/lib/collections'
@@ -22,7 +21,6 @@ import { collectionsFor } from '@/lib/collections'
 export function PickerScreen({ category }: { category: Category }) {
   const {
     catalogue,
-    loadState,
     filters,
     patchFilters,
     resetFilters,
@@ -32,12 +30,11 @@ export function PickerScreen({ category }: { category: Category }) {
     removeProduct,
     clearSelection,
     goCompare,
-    openEditorFor,
+    goHome,
     setPriorities,
     startMatchup,
     openCollection,
   } = useAppState()
-  const store = useCatalogue()
 
   const [showFilters, setShowFilters] = useState(false)
   const [wizardOpen, setWizardOpen] = useState(false)
@@ -51,20 +48,19 @@ export function PickerScreen({ category }: { category: Category }) {
   ]
 
   const results = useMemo(
-    () => (loadState === 'ready' ? applyFilters(category, catalogue, filters) : []),
-    [category, catalogue, filters, loadState],
+    () => applyFilters(category, catalogue, filters),
+    [category, catalogue, filters],
   )
 
   // Generated buying guides — cheap to build and they keep the picker from
   // being the only way in.
   const guides = useMemo(
-    () => (loadState === 'ready' ? collectionsFor(category, catalogue, 3).slice(0, 4) : []),
-    [category, catalogue, loadState],
+    () => collectionsFor(category, catalogue, 3).slice(0, 4),
+    [category, catalogue],
   )
 
   const filterCount = activeFilterCount(filters)
   const atCapacity = selection.length >= MAX_SELECTION
-  const stats = store.statsFor(category.id)
 
   useEffect(() => {
     if (!showFilters) return
@@ -86,15 +82,9 @@ export function PickerScreen({ category }: { category: Category }) {
                 <Icon name={category.icon} size={15} />
               </span>
               <h1 className="text-[19px] font-semibold text-ink">{category.label}</h1>
-              {stats.total > 0 && (
-                <Badge tone="brand" icon="Pencil">
-                  {stats.total} CUSTOMISED
-                </Badge>
-              )}
             </div>
             <p className="mt-2 max-w-xl text-[12.5px] leading-relaxed text-muted">
-              {category.blurb} Pick between 2 and {MAX_SELECTION} — or add a{' '}
-              {category.singular} we don't have.
+              {category.blurb} Pick between 2 and {MAX_SELECTION} to compare.
             </p>
           </div>
 
@@ -102,10 +92,6 @@ export function PickerScreen({ category }: { category: Category }) {
             <Button icon="Wand" variant="primary" onClick={() => setWizardOpen(true)}>
               <span className="hidden sm:inline">Help me choose</span>
               <span className="sm:hidden">Choose</span>
-            </Button>
-            <Button icon="Plus" variant="secondary" onClick={() => openEditorFor(null)}>
-              <span className="hidden sm:inline">Add {category.singular}</span>
-              <span className="sm:hidden">Add</span>
             </Button>
             <Button
               icon="SlidersHorizontal"
@@ -246,46 +232,44 @@ export function PickerScreen({ category }: { category: Category }) {
           />
 
           <div className="min-w-0">
-            {loadState === 'ready' && (
-              <p className="mb-4 text-[12.5px] text-faint" aria-live="polite">
-                {results.length === catalogue.length
-                  ? `${results.length} ${results.length === 1 ? category.singular : category.plural}`
-                  : `${results.length} of ${catalogue.length} ${category.plural}`}
-                {atCapacity && ' · comparison slots full'}
-              </p>
-            )}
+            <p className="mb-4 text-[12.5px] text-faint" aria-live="polite">
+              {results.length === catalogue.length
+                ? `${results.length} ${results.length === 1 ? category.singular : category.plural}`
+                : `${results.length} of ${catalogue.length} ${category.plural}`}
+              {atCapacity && ' · comparison slots full'}
+            </p>
 
-            {loadState !== 'ready' ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 6 }, (_, i) => (
-                  <ProductCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : results.length === 0 ? (
+            {results.length === 0 ? (
               <div className="ts-card">
-                <EmptyState
-                  icon="Search"
-                  title={catalogue.length === 0 ? 'This category is empty' : 'No matches'}
-                  description={
-                    catalogue.length === 0
-                      ? `You've hidden every built-in ${category.singular}. Add one of your own, or restore the built-in catalogue from settings.`
-                      : filters.query
+                {/* An empty category and an over-narrow filter both show
+                    nothing, but only one of them is the user's to fix. */}
+                {catalogue.length === 0 ? (
+                  <EmptyState
+                    icon="CircleAlert"
+                    title={`No ${category.plural} in the catalogue`}
+                    description={`This category has no devices to compare yet. Nothing you change here will help — pick another category instead.`}
+                    action={
+                      <Button variant="primary" icon="ArrowLeft" onClick={goHome}>
+                        Choose a category
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <EmptyState
+                    icon="Search"
+                    title="No matches"
+                    description={
+                      filters.query
                         ? `Nothing matches “${filters.query}” with these filters.`
                         : 'Nothing matches the current filters. Try widening the price range or clearing a chip.'
-                  }
-                  action={
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {catalogue.length > 0 && (
-                        <Button icon="RotateCcw" onClick={resetFilters}>
-                          Clear all filters
-                        </Button>
-                      )}
-                      <Button variant="primary" icon="Plus" onClick={() => openEditorFor(null)}>
-                        Add a {category.singular}
+                    }
+                    action={
+                      <Button variant="primary" icon="RotateCcw" onClick={resetFilters}>
+                        Clear all filters
                       </Button>
-                    </div>
-                  }
-                />
+                    }
+                  />
+                )}
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -299,15 +283,11 @@ export function PickerScreen({ category }: { category: Category }) {
                         selected={slot !== -1}
                         slotColor={slot !== -1 ? seriesColor(slot) : undefined}
                         disabled={atCapacity}
-                        added={store.isUserAdded(category.id, product.id)}
-                        edited={store.isEdited(category.id, product.id)}
                         onToggle={() => toggleProduct(product.id)}
-                        onEdit={() => openEditorFor(product)}
                       />
                     </div>
                   )
                 })}
-                <AddDeviceCard category={category} onClick={() => openEditorFor(null)} />
               </div>
             )}
           </div>

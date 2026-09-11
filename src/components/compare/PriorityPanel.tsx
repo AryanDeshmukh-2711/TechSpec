@@ -26,7 +26,7 @@ export function PriorityPanel({
   const isDefault = category.pillars.every((p) => (priorities[p.id] ?? 5) === 5)
 
   return (
-    <section className="ts-card ts-print-block p-5" aria-labelledby="priorities-heading">
+    <section className="ts-card p-5" aria-labelledby="priorities-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2
@@ -49,7 +49,7 @@ export function PriorityPanel({
       </div>
 
       {/* Presets */}
-      <div className="ts-no-print mt-4 flex flex-wrap items-center gap-1.5">
+      <div className="mt-4 flex flex-wrap items-center gap-1.5">
         <span className="mr-1 text-[11.5px] font-medium tracking-wide text-faint uppercase">
           Presets
         </span>

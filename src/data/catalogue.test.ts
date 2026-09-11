@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CATEGORIES, SPEC_GROUPS, FEATURED_MATCHUPS, fetchCatalogue } from './index'
+import { CATEGORIES, SPEC_GROUPS, FEATURED_MATCHUPS, catalogueFor } from './index'
 import type { Category, Product } from '@/types'
 
 /**
@@ -14,7 +14,7 @@ import type { Category, Product } from '@/types'
 
 const catalogues = new Map<string, Product[]>()
 for (const category of CATEGORIES) {
-  catalogues.set(category.id, await fetchCatalogue(category.id))
+  catalogues.set(category.id, catalogueFor(category.id))
 }
 
 const products = (category: Category): Product[] => catalogues.get(category.id) ?? []
@@ -181,9 +181,23 @@ describe('featured matchups', () => {
   })
 })
 
-describe('fetchCatalogue', () => {
-  it('rejects an unknown category rather than returning undefined', async () => {
+describe('catalogueFor', () => {
+  it('returns an empty list for an unknown category rather than undefined', () => {
     // @ts-expect-error deliberately invalid category id
-    await expect(fetchCatalogue('drones')).rejects.toThrow(/unknown category/i)
+    expect(catalogueFor('drones')).toEqual([])
+  })
+
+  it('returns an empty list when no category is selected', () => {
+    expect(catalogueFor(null)).toEqual([])
+  })
+
+  it('has devices for every registered category', () => {
+    // `catalogueFor` answers an unknown id with silence, so registering a
+    // category in CATEGORIES but forgetting it in CATALOGUE would produce a
+    // browsable, permanently empty category instead of an error. Nothing in
+    // the type system catches that — both are keyed by CategoryId.
+    for (const category of CATEGORIES) {
+      expect(catalogueFor(category.id).length, category.id).toBeGreaterThan(0)
+    }
   })
 })

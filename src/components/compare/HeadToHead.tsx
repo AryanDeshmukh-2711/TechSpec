@@ -32,7 +32,7 @@ export function HeadToHead({
   const specByKey = new Map(category.specs.map((s) => [s.key, s]))
 
   return (
-    <section className="ts-card ts-print-block p-5" aria-labelledby="h2h-heading">
+    <section className="ts-card p-5" aria-labelledby="h2h-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2
@@ -48,7 +48,7 @@ export function HeadToHead({
         </div>
 
         {scored.length > 2 && (
-          <div className="ts-no-print flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Picker
               value={leftId}
               onChange={setLeftId}

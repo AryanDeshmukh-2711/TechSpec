@@ -198,32 +198,12 @@
     scrollbar-width: none;
   }
 
-  .ts-shimmer {
-    background: linear-gradient(
-      90deg,
-      var(--ts-surface-2) 25%,
-      var(--ts-surface-3) 37%,
-      var(--ts-surface-2) 63%
-    );
-    background-size: 400% 100%;
-    animation: ts-shimmer 1.4s ease-in-out infinite;
-  }
-
   .ts-fade {
     animation: ts-fade 0.16s ease-out both;
   }
 
   .ts-pop {
     animation: ts-pop 0.16s ease-out both;
-  }
-}
-
-@keyframes ts-shimmer {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0 50%;
   }
 }
 
@@ -315,52 +295,4 @@
 }
 .ts-range-stacked::-moz-range-thumb {
   pointer-events: auto;
-}
-
-/* ---------------------------------------------------------------------------
-   Print
---------------------------------------------------------------------------- */
-@media print {
-  :root,
-  .dark {
-    --ts-bg: #ffffff;
-    --ts-surface: #ffffff;
-    --ts-surface-2: #ffffff;
-    --ts-surface-3: #f4f4f5;
-    --ts-line: #d4d4d8;
-    --ts-line-strong: #a1a1aa;
-    --ts-ink: #000000;
-    --ts-muted: #3f3f46;
-    --ts-faint: #52525b;
-    --ts-shadow-sm: none;
-    --ts-shadow: none;
-    --ts-shadow-lg: none;
-  }
-
-  .ts-no-print {
-    display: none !important;
-  }
-
-  .ts-print-block {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  /* Everything collapsed on screen still prints in full. */
-  .ts-print-open {
-    display: block !important;
-  }
-
-  body {
-    background: #fff !important;
-  }
-
-  .ts-card {
-    box-shadow: none !important;
-    border: 1px solid #d4d4d8 !important;
-  }
-
-  @page {
-    margin: 14mm;
-  }
 }

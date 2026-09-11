@@ -27,7 +27,7 @@ export function CompareTray({
   const slots = Array.from({ length: MAX_SELECTION }, (_, i) => selected[i] ?? null)
 
   return (
-    <div className="ts-no-print sticky bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur-xl">
+    <div className="sticky bottom-0 z-30 border-t border-line bg-bg/90 backdrop-blur-xl">
       <div className="mx-auto w-full max-w-[1280px] px-4 py-2.5">
         <div className="flex items-center gap-4">
           <div className="ts-scroll-x ts-no-scrollbar flex min-w-0 flex-1 items-center gap-2">

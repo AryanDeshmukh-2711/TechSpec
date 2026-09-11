@@ -104,7 +104,7 @@ function SpecGroup({
   return (
     <section
       id={`group-${groupId}`}
-      className="ts-card ts-print-block scroll-mt-32 overflow-hidden"
+      className="ts-card scroll-mt-32 overflow-hidden"
       aria-labelledby={`group-heading-${groupId}`}
     >
       <header className="flex items-center justify-between gap-3 border-b border-line bg-surface-2 px-4 py-2.5">

@@ -77,7 +77,7 @@ export function Button({
 
 /* ------------------------------------------------------------ IconButton */
 
-export function IconButton({
+function IconButton({
   icon,
   label,
   size = 'md',
@@ -169,57 +169,6 @@ export function Badge({
       {icon && <Icon name={icon} size={11} />}
       {children}
     </span>
-  )
-}
-
-/* --------------------------------------------------- SegmentedControl */
-
-export function SegmentedControl<T extends string>({
-  options,
-  value,
-  onChange,
-  size = 'md',
-  className,
-  label,
-}: {
-  options: { value: T; label: string; icon?: string }[]
-  value: T
-  onChange: (value: T) => void
-  size?: 'sm' | 'md'
-  className?: string
-  label?: string
-}) {
-  return (
-    <div
-      role="group"
-      aria-label={label}
-      className={cn(
-        'inline-flex items-center gap-0.5 rounded-md border border-line bg-surface-2 p-0.5',
-        className,
-      )}
-    >
-      {options.map((option) => {
-        const active = option.value === value
-        return (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onChange(option.value)}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded font-medium transition-colors duration-100',
-              size === 'sm' ? 'h-6 px-2.5 text-[12px]' : 'h-7 px-3 text-[12.5px]',
-              active
-                ? 'bg-surface text-ink shadow-soft'
-                : 'text-muted hover:text-ink',
-            )}
-          >
-            {option.icon && <Icon name={option.icon} size={14} />}
-            {option.label}
-          </button>
-        )
-      })}
-    </div>
   )
 }
 
@@ -316,12 +265,6 @@ export function InfoHint({ text }: { text: string }) {
   )
 }
 
-/* ------------------------------------------------------------ Skeleton */
-
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('ts-shimmer rounded-xl', className)} />
-}
-
 /* ---------------------------------------------------------- EmptyState */
 
 export function EmptyState({
@@ -373,50 +316,6 @@ export function StarRating({ value, size = 13 }: { value: number; size?: number 
   )
 }
 
-/* --------------------------------------------------------------- Field */
-
-export function Field({
-  label,
-  hint,
-  error,
-  children,
-  required,
-  className,
-}: {
-  label: string
-  hint?: string
-  error?: string
-  children: ReactNode
-  required?: boolean
-  className?: string
-}) {
-  return (
-    <label className={cn('block', className)}>
-      <span className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-medium text-ink">
-        {label}
-        {required && <span className="text-danger">*</span>}
-        {hint && <InfoHint text={hint} />}
-      </span>
-      {children}
-      {error && (
-        <span className="mt-1 flex items-center gap-1 text-[12px] text-danger">
-          <Icon name="CircleAlert" size={12} />
-          {error}
-        </span>
-      )}
-    </label>
-  )
-}
-
-export const inputClass = (invalid?: boolean) =>
-  cn(
-    'h-9 w-full rounded-md border bg-surface px-2.5 text-[13px] text-ink',
-    'transition-colors placeholder:text-faint focus:outline-none',
-    invalid
-      ? 'border-danger focus:border-danger'
-      : 'border-line hover:border-line-strong focus:border-brand',
-  )
-
 /* --------------------------------------------------------------- Modal */
 
 export function Modal({
@@ -456,7 +355,7 @@ export function Modal({
   if (!open) return null
 
   return (
-    <div className="ts-no-print fixed inset-0 z-100 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-100 flex items-end justify-center sm:items-center">
       <button
         type="button"
         aria-label="Close"
@@ -501,8 +400,7 @@ export function Modal({
  * A collapsible section.
  *
  * The comparison page has a lot to say, but not all at once. Heavy sections
- * start closed with a one-line summary so the page opens calm; print forces
- * everything open via `ts-print-open`.
+ * start closed with a one-line summary so the page opens calm.
  */
 export function Disclosure({
   title,
@@ -524,13 +422,13 @@ export function Disclosure({
   const panelId = useId()
 
   return (
-    <section id={id} className="ts-card ts-print-block scroll-mt-16 overflow-hidden">
+    <section id={id} className="ts-card scroll-mt-16 overflow-hidden">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="ts-no-print flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-surface-2"
+        className="flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-surface-2"
       >
         {icon && <Icon name={icon} size={15} className="shrink-0 text-faint" />}
         <span className="text-[13.5px] font-semibold text-ink">{title}</span>
@@ -546,10 +444,9 @@ export function Disclosure({
         </span>
       </button>
 
-      {/* Printed output always shows the full section. */}
       <div
         id={panelId}
-        className={cn('border-t border-line px-4 py-4', !open && 'hidden ts-print-open')}
+        className={cn('border-t border-line px-4 py-4', !open && 'hidden')}
       >
         {children}
       </div>

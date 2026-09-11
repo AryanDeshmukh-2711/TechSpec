@@ -1,13 +1,11 @@
 import {
   Aperture, ArrowLeft, ArrowRight, ArrowUpDown, ArrowUpRight, AudioLines, Award, Backpack,
-  BatteryCharging, Bird, Bookmark, Box, Camera, Check, ChevronDown, ChevronLeft, ChevronRight,
-  ChevronUp, CircleAlert, CircleCheck, CircleHelp, Clock, Command, Compass, Copy, Cpu, Database,
-  Download, Dumbbell, Ellipsis, Eye, EyeOff, Feather, FileJson, Flame, Footprints, Gamepad2,
-  HardDrive, Headphones, HeartPulse, History, House, Info, Layers, Laptop, LayoutGrid, Lightbulb,
-  Link2, Loader, type LucideProps, Mic, Minus, Monitor, Moon, Mountain, Pencil, PenTool, PiggyBank,
-  Plane, Plus, Printer, RotateCcw, Rows3, Save, Scale, Search, Settings, Share2, ShieldCheck,
-  SlidersHorizontal, Smartphone, Sparkles, Star, Sun, Tablet, Tag, Target, TrendingUp,
-  TriangleAlert, Trash2, Trophy, Undo2, Upload, User, Video, Wand, Watch, Wifi, X, Zap,
+  BatteryCharging, Bird, Bookmark, Box, Camera, Check, ChevronDown, ChevronRight, CircleAlert,
+  CircleCheck, CircleHelp, Command, Cpu, Dumbbell, Feather, Footprints, Gamepad2, HardDrive,
+  Headphones, HeartPulse, History, House, Laptop, Lightbulb, Link2, Loader, type LucideProps, Mic,
+  Minus, Monitor, Moon, Mountain, PenTool, PiggyBank, Plane, Plus, RotateCcw, Rows3, Scale,
+  Search, SlidersHorizontal, Smartphone, Sparkles, Star, Sun, Tablet, Tag, Target, TrendingUp,
+  Trophy, User, Video, Wand, Watch, Wifi, X, Zap,
 } from 'lucide-react'
 
 /**
@@ -16,14 +14,12 @@ import {
  */
 const REGISTRY = {
   Aperture, ArrowLeft, ArrowRight, ArrowUpDown, ArrowUpRight, AudioLines, Award, Backpack,
-  BatteryCharging, Bird, Bookmark, Box, Camera, Check, ChevronDown, ChevronLeft, ChevronRight,
-  ChevronUp, CircleAlert, CircleCheck, CircleHelp, Clock, Command, Compass, Copy, Cpu, Database,
-  Download, Dumbbell, Ellipsis, Eye, EyeOff, Feather, FileJson, Flame, Footprints, Gamepad2,
-  HardDrive, Headphones, HeartPulse, History, House, Info, Layers, Laptop, LayoutGrid, Lightbulb,
-  Link2, Loader, Mic, Minus, Monitor, Moon, Mountain, Pencil, PenTool, PiggyBank, Plane, Plus,
-  Printer, RotateCcw, Rows3, Save, Scale, Search, Settings, Share2, ShieldCheck,
-  SlidersHorizontal, Smartphone, Sparkles, Star, Sun, Tablet, Tag, Target, TrendingUp,
-  TriangleAlert, Trash2, Trophy, Undo2, Upload, User, Video, Wand, Watch, Wifi, X, Zap,
+  BatteryCharging, Bird, Bookmark, Box, Camera, Check, ChevronDown, ChevronRight, CircleAlert,
+  CircleCheck, CircleHelp, Command, Cpu, Dumbbell, Feather, Footprints, Gamepad2, HardDrive,
+  Headphones, HeartPulse, History, House, Laptop, Lightbulb, Link2, Loader, Mic, Minus,
+  Monitor, Moon, Mountain, PenTool, PiggyBank, Plane, Plus, RotateCcw, Rows3, Scale, Search,
+  SlidersHorizontal, Smartphone, Sparkles, Star, Sun, Tablet, Tag, Target, TrendingUp, Trophy,
+  User, Video, Wand, Watch, Wifi, X, Zap,
 } satisfies Record<string, React.ComponentType<LucideProps>>
 
 export type IconName = keyof typeof REGISTRY

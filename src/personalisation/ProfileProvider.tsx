@@ -13,6 +13,7 @@ import {
   clearProfile,
   emptyProfile,
   favouritePersona,
+  forgetPriorities as dropPriorities,
   hasHistory,
   loadProfile,
   rankCategories,
@@ -28,11 +29,22 @@ import {
 
 interface ProfileValue {
   profile: UserProfile
+  /**
+   * False until the stored profile has been read.
+   *
+   * Effects run child-first, so a consumer's mount effect fires *before* this
+   * provider has hydrated. A read taken then comes back empty — which is how
+   * one-shot priority seeding silently replaced remembered weights with
+   * neutral defaults. A write taken then is merely wasted, since the load
+   * replaces it. Consumers must wait for this before doing either.
+   */
+  ready: boolean
   hasHistory: boolean
   noteView: (product: Product) => void
   noteComparison: (category: CategoryId, products: Product[]) => void
   notePersona: (personaId: string) => void
   savePriorities: (category: CategoryId, priorities: Record<string, number>) => void
+  forgetPriorities: (category: CategoryId) => void
   prioritiesFor: (category: CategoryId) => Record<string, number> | undefined
   orderedCategories: (all: CategoryId[]) => CategoryId[]
   affinity: (lookup: (id: string) => Product | undefined) => Record<string, number>
@@ -84,6 +96,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  const forgetPriorities = useCallback((category: CategoryId) => {
+    setProfile((current) => dropPriorities(current, category))
+  }, [])
+
   const prioritiesFor = useCallback(
     (category: CategoryId) => profile.priorities[category],
     [profile.priorities],
@@ -116,11 +132,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ProfileValue>(
     () => ({
       profile,
+      ready: hydrated,
       hasHistory: hasHistory(profile),
       noteView,
       noteComparison,
       notePersona,
       savePriorities,
+      forgetPriorities,
       prioritiesFor,
       orderedCategories,
       affinity,
@@ -130,7 +148,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       forgetEverything,
     }),
     [
-      profile, noteView, noteComparison, notePersona, savePriorities, prioritiesFor,
+      profile, hydrated, noteView, noteComparison, notePersona, savePriorities,
+      forgetPriorities, prioritiesFor,
       orderedCategories, affinity, suggestions, markOnboarded, forgetEverything,
     ],
   )
