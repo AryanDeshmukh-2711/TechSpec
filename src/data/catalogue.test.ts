@@ -190,4 +190,14 @@ describe('catalogueFor', () => {
   it('returns an empty list when no category is selected', () => {
     expect(catalogueFor(null)).toEqual([])
   })
+
+  it('has devices for every registered category', () => {
+    // `catalogueFor` answers an unknown id with silence, so registering a
+    // category in CATEGORIES but forgetting it in CATALOGUE would produce a
+    // browsable, permanently empty category instead of an error. Nothing in
+    // the type system catches that — both are keyed by CategoryId.
+    for (const category of CATEGORIES) {
+      expect(catalogueFor(category.id).length, category.id).toBeGreaterThan(0)
+    }
+  })
 })
