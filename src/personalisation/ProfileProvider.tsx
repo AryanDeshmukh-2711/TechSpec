@@ -28,6 +28,14 @@ import {
 
 interface ProfileValue {
   profile: UserProfile
+  /**
+   * False until the stored profile has been read. Consumers must not record
+   * into the profile, or read remembered values out of it, before this flips:
+   * effects run child-first, so a child's mount effect fires *before* this
+   * provider has hydrated, and anything it wrote would be overwritten by the
+   * load — or read back as empty.
+   */
+  ready: boolean
   hasHistory: boolean
   noteView: (product: Product) => void
   noteComparison: (category: CategoryId, products: Product[]) => void
@@ -116,6 +124,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ProfileValue>(
     () => ({
       profile,
+      ready: hydrated,
       hasHistory: hasHistory(profile),
       noteView,
       noteComparison,
@@ -130,7 +139,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       forgetEverything,
     }),
     [
-      profile, noteView, noteComparison, notePersona, savePriorities, prioritiesFor,
+      profile, hydrated, noteView, noteComparison, notePersona, savePriorities, prioritiesFor,
       orderedCategories, affinity, suggestions, markOnboarded, forgetEverything,
     ],
   )
