@@ -19,7 +19,7 @@ export function PersonaGrid({
   onApplyPreset: (weights: Record<string, number>) => void
 }) {
   return (
-    <section className="ts-print-block" aria-labelledby="personas-heading">
+    <section className="" aria-labelledby="personas-heading">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2
@@ -80,7 +80,7 @@ export function PersonaGrid({
 
               <p
                 className={cn(
-                  'ts-no-print mt-3 flex items-center gap-1 text-[11.5px] font-medium text-brand-text',
+                  'mt-3 flex items-center gap-1 text-[11.5px] font-medium text-brand-text',
                   'opacity-0 transition-opacity group-hover:opacity-100',
                 )}
               >

@@ -92,7 +92,7 @@ export function CollectionScreen({
         }}
       />
 
-      <Button size="sm" variant="ghost" icon="ArrowLeft" onClick={goPicker} className="ts-no-print">
+      <Button size="sm" variant="ghost" icon="ArrowLeft" onClick={goPicker}>
         All {category.plural}
       </Button>
 
@@ -116,7 +116,7 @@ export function CollectionScreen({
 
       {collection.entries.length >= 2 && (
         <Button
-          className="ts-no-print mt-4"
+          className="mt-4"
           variant="primary"
           iconRight="ArrowRight"
           onClick={() => {
@@ -135,7 +135,7 @@ export function CollectionScreen({
         {collection.entries.map((entry, index) => {
           const product = entry.scored.product
           return (
-            <li key={product.id} className="ts-card ts-print-block p-4">
+            <li key={product.id} className="ts-card p-4">
               <div className="flex gap-4">
                 <div className="flex shrink-0 flex-col items-center gap-2">
                   <span
@@ -209,7 +209,7 @@ export function CollectionScreen({
 
       {/* Internal linking — report item 87. */}
       {siblings.length > 0 && (
-        <section className="ts-no-print mt-10">
+        <section className="mt-10">
           <h2 className="text-[14px] font-semibold text-ink">Other guides in {category.label}</h2>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {siblings.map((sibling) => (

@@ -44,7 +44,7 @@ export function DealBreakers({
   const disqualified = Object.keys(failures).length
 
   return (
-    <section className="ts-card ts-print-block p-5" aria-labelledby="dealbreakers-heading">
+    <section className="ts-card p-5" aria-labelledby="dealbreakers-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2
@@ -64,14 +64,14 @@ export function DealBreakers({
           <button
             type="button"
             onClick={onClear}
-            className="ts-no-print text-[12px] font-medium text-brand-text hover:underline"
+            className="text-[12px] font-medium text-brand-text hover:underline"
           >
             Clear
           </button>
         )}
       </div>
 
-      <div className="ts-no-print mt-4 flex flex-wrap gap-1.5">
+      <div className="mt-4 flex flex-wrap gap-1.5">
         {offered.map((quick) => {
           const on = active.includes(quick.id)
           return (

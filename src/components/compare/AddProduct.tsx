@@ -68,7 +68,7 @@ export function AddProduct({
   }
 
   return (
-    <div ref={containerRef} className="ts-no-print relative">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
