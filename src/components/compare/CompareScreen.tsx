@@ -17,9 +17,7 @@ import { HeadToHead } from './HeadToHead'
 import { SpecTable } from './SpecTable'
 import { PillarBreakdown } from './PillarBreakdown'
 import { DealBreakers } from './DealBreakers'
-import { PriceHistoryPanel } from './PriceHistoryPanel'
-import { SaveComparison } from './SaveComparison'
-import { ExportBar } from './ExportBar'
+import { ShareButton } from './ShareButton'
 import { PageMeta, StructuredData } from '@/components/StructuredData'
 import { comparisonSchema } from '@/lib/structuredData'
 
@@ -143,30 +141,19 @@ export function CompareScreen({ category }: { category: Category }) {
       <StructuredData id="comparison" data={comparisonSchema(category, scored)} />
 
       {/* --------------------------------------------------------- toolbar */}
-      <div className="ts-no-print flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="ghost" icon="ArrowLeft" onClick={goPicker}>
-            Change selection
-          </Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <SaveComparison
-            category={category}
-            products={selected}
-            priorities={priorities}
-            onToast={showToast}
-          />
-          <ExportBar
-            category={category}
-            scored={scored}
-            verdicts={verdicts}
-            priorities={priorities}
-            onToast={showToast}
-          />
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button size="sm" variant="ghost" icon="ArrowLeft" onClick={goPicker}>
+          Change selection
+        </Button>
+        <ShareButton
+          category={category}
+          products={selected}
+          priorities={priorities}
+          onToast={showToast}
+        />
       </div>
 
-      <header className="mt-4 print:mt-0">
+      <header className="mt-4">
         <h1 className="text-[19px] leading-tight font-semibold text-balance text-ink sm:text-[22px]">
           {selected.map((p) => p.name).join('  vs  ')}
         </h1>
@@ -213,8 +200,8 @@ export function CompareScreen({ category }: { category: Category }) {
           onReset={resetPriorities}
         />
 
-        {/* Heavy sections start closed. The page opens with the answer;
-            the evidence is one click away and always prints in full. */}
+        {/* Heavy sections start closed. The page opens with the answer and
+            the evidence is one click away. */}
         <Disclosure
           title="Capability profile"
           icon="Target"
@@ -243,14 +230,6 @@ export function CompareScreen({ category }: { category: Category }) {
           <PillarBreakdown category={category} scored={scored} colors={colors} />
         </Disclosure>
 
-        <Disclosure
-          title="Price history"
-          icon="TrendingUp"
-          summary="Launch price and every correction since"
-        >
-          <PriceHistoryPanel scored={scored} />
-        </Disclosure>
-
         {verdicts.length > 0 && (
           <Disclosure
             title="Best for each kind of buyer"
@@ -274,7 +253,7 @@ export function CompareScreen({ category }: { category: Category }) {
           icon="Rows3"
           summary={`${category.specs.filter((sp) => !sp.internal).length} specs across ${activeGroups.length} groups`}
         >
-          <div className="ts-no-print mb-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2">
             <Switch
               checked={differencesOnly}
               onChange={setDifferencesOnly}
@@ -290,7 +269,7 @@ export function CompareScreen({ category }: { category: Category }) {
           </div>
 
           <nav
-            className="ts-no-print ts-scroll-x ts-no-scrollbar mb-4 flex gap-1.5 pb-1"
+            className="ts-scroll-x ts-no-scrollbar mb-4 flex gap-1.5 pb-1"
             aria-label="Jump to spec group"
           >
             {activeGroups.map((groupId) => (

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Category, SortKey } from '@/types'
 import { MAX_SELECTION, useAppState } from '@/hooks/useAppState'
-import { useCatalogue } from '@/data/store/CatalogueProvider'
 import {
   SORT_OPTIONS,
   activeFilterCount,
@@ -12,9 +11,9 @@ import {
 import { formatCompactPrice, seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
-import { Badge, Button, Chip, EmptyState } from '@/components/ui/primitives'
+import { Button, Chip, EmptyState } from '@/components/ui/primitives'
 import { DualRange } from '@/components/ui/DualRange'
-import { AddDeviceCard, ProductCard, ProductCardSkeleton } from './ProductCard'
+import { ProductCard, ProductCardSkeleton } from './ProductCard'
 import { CompareTray } from './CompareTray'
 import { RecommendWizard } from '@/components/quiz/RecommendWizard'
 import { collectionsFor } from '@/lib/collections'
@@ -32,12 +31,10 @@ export function PickerScreen({ category }: { category: Category }) {
     removeProduct,
     clearSelection,
     goCompare,
-    openEditorFor,
     setPriorities,
     startMatchup,
     openCollection,
   } = useAppState()
-  const store = useCatalogue()
 
   const [showFilters, setShowFilters] = useState(false)
   const [wizardOpen, setWizardOpen] = useState(false)
@@ -64,7 +61,6 @@ export function PickerScreen({ category }: { category: Category }) {
 
   const filterCount = activeFilterCount(filters)
   const atCapacity = selection.length >= MAX_SELECTION
-  const stats = store.statsFor(category.id)
 
   useEffect(() => {
     if (!showFilters) return
@@ -86,15 +82,9 @@ export function PickerScreen({ category }: { category: Category }) {
                 <Icon name={category.icon} size={15} />
               </span>
               <h1 className="text-[19px] font-semibold text-ink">{category.label}</h1>
-              {stats.total > 0 && (
-                <Badge tone="brand" icon="Pencil">
-                  {stats.total} CUSTOMISED
-                </Badge>
-              )}
             </div>
             <p className="mt-2 max-w-xl text-[12.5px] leading-relaxed text-muted">
-              {category.blurb} Pick between 2 and {MAX_SELECTION} — or add a{' '}
-              {category.singular} we don't have.
+              {category.blurb} Pick between 2 and {MAX_SELECTION} to compare.
             </p>
           </div>
 
@@ -102,10 +92,6 @@ export function PickerScreen({ category }: { category: Category }) {
             <Button icon="Wand" variant="primary" onClick={() => setWizardOpen(true)}>
               <span className="hidden sm:inline">Help me choose</span>
               <span className="sm:hidden">Choose</span>
-            </Button>
-            <Button icon="Plus" variant="secondary" onClick={() => openEditorFor(null)}>
-              <span className="hidden sm:inline">Add {category.singular}</span>
-              <span className="sm:hidden">Add</span>
             </Button>
             <Button
               icon="SlidersHorizontal"
@@ -265,25 +251,16 @@ export function PickerScreen({ category }: { category: Category }) {
               <div className="ts-card">
                 <EmptyState
                   icon="Search"
-                  title={catalogue.length === 0 ? 'This category is empty' : 'No matches'}
+                  title="No matches"
                   description={
-                    catalogue.length === 0
-                      ? `You've hidden every built-in ${category.singular}. Add one of your own, or restore the built-in catalogue from settings.`
-                      : filters.query
-                        ? `Nothing matches “${filters.query}” with these filters.`
-                        : 'Nothing matches the current filters. Try widening the price range or clearing a chip.'
+                    filters.query
+                      ? `Nothing matches “${filters.query}” with these filters.`
+                      : 'Nothing matches the current filters. Try widening the price range or clearing a chip.'
                   }
                   action={
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {catalogue.length > 0 && (
-                        <Button icon="RotateCcw" onClick={resetFilters}>
-                          Clear all filters
-                        </Button>
-                      )}
-                      <Button variant="primary" icon="Plus" onClick={() => openEditorFor(null)}>
-                        Add a {category.singular}
-                      </Button>
-                    </div>
+                    <Button variant="primary" icon="RotateCcw" onClick={resetFilters}>
+                      Clear all filters
+                    </Button>
                   }
                 />
               </div>
@@ -299,15 +276,11 @@ export function PickerScreen({ category }: { category: Category }) {
                         selected={slot !== -1}
                         slotColor={slot !== -1 ? seriesColor(slot) : undefined}
                         disabled={atCapacity}
-                        added={store.isUserAdded(category.id, product.id)}
-                        edited={store.isEdited(category.id, product.id)}
                         onToggle={() => toggleProduct(product.id)}
-                        onEdit={() => openEditorFor(product)}
                       />
                     </div>
                   )
                 })}
-                <AddDeviceCard category={category} onClick={() => openEditorFor(null)} />
               </div>
             )}
           </div>

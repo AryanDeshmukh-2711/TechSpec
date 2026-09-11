@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CategoryId, Product } from '@/types'
-import { CATEGORIES, getCategory } from '@/data'
-import { useCatalogue } from '@/data/store/CatalogueProvider'
+import { CATEGORIES, catalogueFor, getCategory } from '@/data'
 import { useProfile } from '@/personalisation/ProfileProvider'
 import { formatPrice } from '@/lib/format'
 import { cn } from '@/lib/cn'
@@ -36,7 +35,6 @@ export function CommandPalette({
   onOpenDevice: (categoryId: CategoryId, product: Product) => void
   actions: Command[]
 }) {
-  const { catalogueFor } = useCatalogue()
   const { profile } = useProfile()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
@@ -90,7 +88,7 @@ export function CommandPalette({
         .toLowerCase()
         .includes(q)
     })
-  }, [query, catalogueFor, actions, onSelectCategory, onOpenDevice, profile.comparisons])
+  }, [query, actions, onSelectCategory, onOpenDevice, profile.comparisons])
 
   useEffect(() => {
     setActive(0)
@@ -140,7 +138,7 @@ export function CommandPalette({
   let lastGroup = ''
 
   return (
-    <div className="ts-no-print fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]">
       <button
         type="button"
         aria-label="Close search"

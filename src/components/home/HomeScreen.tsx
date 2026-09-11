@@ -1,13 +1,11 @@
 import { useMemo } from 'react'
-import { CATEGORIES, FEATURED_MATCHUPS, getCategory } from '@/data'
+import { CATEGORIES, FEATURED_MATCHUPS, TOTAL_PRODUCTS, catalogueFor, getCategory } from '@/data'
 import { useAppState } from '@/hooks/useAppState'
-import { useCatalogue } from '@/data/store/CatalogueProvider'
 import { useProfile } from '@/personalisation/ProfileProvider'
-import { useLibrary } from '@/data/store/LibraryProvider'
 import { seriesColor } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { Icon } from '@/components/ui/Icon'
-import { Badge, Button } from '@/components/ui/primitives'
+import { Button } from '@/components/ui/primitives'
 import { DeviceGlyph } from '@/components/DeviceGlyph'
 
 /**
@@ -20,9 +18,7 @@ import { DeviceGlyph } from '@/components/DeviceGlyph'
  */
 export function HomeScreen() {
   const { selectCategory, startMatchup } = useAppState()
-  const catalogue = useCatalogue()
   const { profile, hasHistory, orderedCategories, suggestions } = useProfile()
-  const { saved, remove } = useLibrary()
 
   const categories = useMemo(() => {
     const order = orderedCategories(CATEGORIES.map((c) => c.id))
@@ -31,16 +27,9 @@ export function HomeScreen() {
       .filter((c): c is (typeof CATEGORIES)[number] => Boolean(c))
   }, [orderedCategories])
 
-  const picks = useMemo(
-    () => suggestions((id) => catalogue.catalogueFor(id)),
-    [suggestions, catalogue],
-  )
+  const picks = useMemo(() => suggestions(catalogueFor), [suggestions])
 
   const recent = profile.comparisons.slice(0, 4)
-  const totalDevices = CATEGORIES.reduce(
-    (sum, c) => sum + catalogue.catalogueFor(c.id).length,
-    0,
-  )
 
   return (
     <div className="ts-fade">
@@ -70,8 +59,7 @@ export function HomeScreen() {
                   <Button onClick={() => selectCategory('laptops')}>Compare laptops</Button>
                 </div>
                 <p className="tnum mt-5 text-[12px] text-faint">
-                  {totalDevices} devices across {CATEGORIES.length} categories · every spec
-                  editable · no account
+                  {TOTAL_PRODUCTS} devices across {CATEGORIES.length} categories · no sign-up
                 </p>
               </>
             )}
@@ -80,53 +68,6 @@ export function HomeScreen() {
       </section>
 
       <div className="mx-auto w-full max-w-[1280px] px-4">
-        {/* ------------------------------------------------------ saved */}
-        {saved.length > 0 && (
-          <Section
-            title="Saved comparisons"
-            subtitle="Kept deliberately, with the priority weights you had at the time."
-          >
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {saved.map((entry) => {
-                const entryCategory = getCategory(entry.category)
-                return (
-                  <div
-                    key={entry.id}
-                    className="group ts-card relative flex flex-col p-4 transition-colors hover:border-line-strong"
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        startMatchup(entry.category, entry.items.map((i) => i.productId))
-                      }
-                      className="text-left"
-                    >
-                      <span className="flex items-center gap-1.5 text-[11px] font-medium tracking-wide text-faint uppercase">
-                        {entryCategory && <Icon name={entryCategory.icon} size={12} />}
-                        {entryCategory?.label}
-                      </span>
-                      <span className="mt-2 block text-[14px] leading-snug font-semibold text-ink">
-                        {entry.title}
-                      </span>
-                      <span className="mt-1 block text-[12px] text-muted">
-                        {entry.items.map((i) => i.productName).join(' · ')}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`Remove ${entry.title}`}
-                      onClick={() => remove(entry.id)}
-                      className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded text-faint opacity-0 transition-opacity group-hover:opacity-100 hover:bg-surface-2 hover:text-danger focus-visible:opacity-100"
-                    >
-                      <Icon name="X" size={13} />
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-          </Section>
-        )}
-
         {/* -------------------------------------------------- continue */}
         {recent.length > 0 && (
           <Section
@@ -175,9 +116,9 @@ export function HomeScreen() {
             <div className="grid gap-3 md:grid-cols-3">
               {picks.map((pick, index) => {
                 const category = getCategory(pick.category)
-                const products = catalogue
-                  .catalogueFor(pick.category)
-                  .filter((p) => pick.ids.includes(p.id))
+                const products = catalogueFor(pick.category).filter((p) =>
+                  pick.ids.includes(p.id),
+                )
                 return (
                   <button
                     key={`${pick.category}-${pick.ids.join(',')}`}
@@ -228,8 +169,7 @@ export function HomeScreen() {
         >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category, index) => {
-              const devices = catalogue.catalogueFor(category.id)
-              const stats = catalogue.statsFor(category.id)
+              const devices = catalogueFor(category.id)
               const used = profile.categoryUse[category.id] ?? 0
               return (
                 <button
@@ -251,14 +191,7 @@ export function HomeScreen() {
                       <Icon name={category.icon} size={21} />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-[15.5px] font-semibold text-ink">{category.label}</h3>
-                        {stats.total > 0 && (
-                          <Badge tone="brand" icon="Pencil">
-                            {stats.total} YOURS
-                          </Badge>
-                        )}
-                      </div>
+                      <h3 className="text-[15.5px] font-semibold text-ink">{category.label}</h3>
                       <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
                         {category.blurb}
                       </p>
@@ -289,9 +222,9 @@ export function HomeScreen() {
               {FEATURED_MATCHUPS.map((matchup, index) => {
                 const category = getCategory(matchup.category)
                 if (!category) return null
-                const products = catalogue
-                  .catalogueFor(matchup.category)
-                  .filter((p) => matchup.ids.includes(p.id))
+                const products = catalogueFor(matchup.category).filter((p) =>
+                  matchup.ids.includes(p.id),
+                )
                 if (products.length < 2) return null
                 return (
                   <button
@@ -356,10 +289,10 @@ export function HomeScreen() {
               body="Open any pillar to see the specs behind it, their weights and the points each contributed. They always sum."
             />
             <HowCard
-              icon="Pencil"
+              icon="Link2"
               step="04"
-              title="Yours to correct"
-              body="Disagree with a number? Change it. Add a device we don't have. Export the whole catalogue as JSON."
+              title="Shareable as it stands"
+              body="A share link carries your weights, not just the product list — so whoever opens it sees the comparison you saw."
             />
           </div>
         </Section>

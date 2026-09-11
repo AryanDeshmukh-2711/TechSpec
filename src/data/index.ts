@@ -31,12 +31,8 @@ export const CATEGORIES: Category[] = [
   camerasCategory,
 ]
 
-/**
- * The bundled catalogue is a *seed*, not the truth. `CatalogueProvider`
- * composes it with each user's overlay of edits, additions and removals; this
- * map is only ever the starting point and the "reset" target.
- */
-export const SEED_CATALOGUE: Record<CategoryId, Product[]> = {
+/** Every device in the app, by category. */
+export const CATALOGUE: Record<CategoryId, Product[]> = {
   mobiles: hydrate(mobileProducts),
   laptops: hydrate(laptopProducts),
   tablets: hydrate(tabletProducts),
@@ -49,23 +45,15 @@ export function getCategory(id: CategoryId | null | undefined): Category | undef
   return CATEGORIES.find((c) => c.id === id)
 }
 
-/** Size of the seed catalogue. Live counts come from `useCatalogue()`. */
-export function productCount(id: CategoryId): number {
-  return SEED_CATALOGUE[id]?.length ?? 0
+/** The devices in a category. Unknown ids yield an empty list, never undefined. */
+export function catalogueFor(id: CategoryId | null | undefined): Product[] {
+  return (id && CATALOGUE[id]) || []
 }
 
-export const TOTAL_PRODUCTS = Object.values(SEED_CATALOGUE).reduce((sum, list) => sum + list.length, 0)
-
-/**
- * Seed-only async accessor, kept for the data-integrity tests. Application
- * code reads through `useCatalogue()` so it sees the user's overlay too.
- */
-export async function fetchCatalogue(id: CategoryId): Promise<Product[]> {
-  await new Promise((resolve) => setTimeout(resolve, 0))
-  const list = SEED_CATALOGUE[id]
-  if (!list) throw new Error(`Unknown category: ${id}`)
-  return list
-}
+export const TOTAL_PRODUCTS = Object.values(CATALOGUE).reduce(
+  (sum, list) => sum + list.length,
+  0,
+)
 
 /** Group display metadata, shared by the spec table and the group nav. */
 export const SPEC_GROUPS: Record<SpecGroupId, { label: string; icon: string }> = {

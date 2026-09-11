@@ -9,8 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { CategoryId, LoadState, PickerFilters, Product, Screen } from '@/types'
-import { getCategory } from '@/data'
-import { useCatalogue } from '@/data/store/CatalogueProvider'
+import { catalogueFor, getCategory } from '@/data'
 import { useProfile } from '@/personalisation/ProfileProvider'
 import { EMPTY_FILTERS } from '@/lib/filters'
 import { defaultPriorities } from '@/lib/scoring'
@@ -18,9 +17,6 @@ import { parseUrl, writeUrl } from '@/lib/urlState'
 
 export const MAX_SELECTION = 5
 export const MIN_SELECTION = 2
-
-/** `undefined` = editor closed, `null` = creating, `Product` = editing. */
-export type EditorTarget = Product | null | undefined
 
 interface AppStateValue {
   screen: Screen
@@ -32,7 +28,6 @@ interface AppStateValue {
   loadState: LoadState
   toast: string | null
   selected: Product[]
-  editorTarget: EditorTarget
   collectionKey: string | null
 
   selectCategory: (id: CategoryId) => void
@@ -49,9 +44,8 @@ interface AppStateValue {
   goPicker: () => void
   goCompare: () => void
   startMatchup: (category: CategoryId, ids: string[]) => void
+  showDevice: (category: CategoryId, productId: string) => void
   showToast: (message: string) => void
-  openEditorFor: (product: Product | null) => void
-  closeEditor: () => void
   openCollection: (category: CategoryId, key: string) => void
 }
 
@@ -59,7 +53,6 @@ const AppStateContext = createContext<AppStateValue | null>(null)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const initial = useRef(parseUrl()).current
-  const store = useCatalogue()
   const profile = useProfile()
 
   const [screen, setScreen] = useState<Screen>(initial.screen)
@@ -68,7 +61,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [priorities, setPrioritiesState] = useState<Record<string, number>>(initial.priorities)
   const [filters, setFilters] = useState<PickerFilters>(EMPTY_FILTERS)
   const [toast, setToast] = useState<string | null>(null)
-  const [editorTarget, setEditorTarget] = useState<EditorTarget>(undefined)
   const [collectionKey, setCollectionKey] = useState<string | null>(
     initial.collection ?? null,
   )
@@ -76,14 +68,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   /* ------------------------------------------------------------- catalogue */
 
-  // The catalogue is now resolved synchronously from seed + the user's
-  // overlay, so the only asynchronous step left is reading storage once.
-  const catalogue = useMemo(
-    () => (categoryId ? store.catalogueFor(categoryId) : []),
-    [categoryId, store],
-  )
+  // The catalogue is bundled with the app, so there is nothing to wait for —
+  // picking a category is the only thing that makes it non-empty.
+  const catalogue = useMemo(() => catalogueFor(categoryId), [categoryId])
 
-  const loadState: LoadState = !categoryId ? 'idle' : store.ready ? 'ready' : 'loading'
+  const loadState: LoadState = categoryId ? 'ready' : 'idle'
 
   /* ------------------------------------------------------------ priorities */
 
@@ -91,6 +80,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // neutral. Remembering priorities is the whole point of asking for them.
   const seededFor = useRef<CategoryId | null>(null)
   useEffect(() => {
+    // Wait for the stored profile: seeding is one-shot per category, so doing
+    // it against an unhydrated profile would silently discard the weights the
+    // user set last time.
+    if (!profile.ready) return
     const category = getCategory(categoryId)
     if (!category || seededFor.current === categoryId) return
     seededFor.current = categoryId
@@ -108,12 +101,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   // Persist priority changes so the next visit starts where this one ended.
   useEffect(() => {
-    if (!categoryId || !Object.keys(priorities).length) return
+    if (!profile.ready || !categoryId || !Object.keys(priorities).length) return
     const timer = window.setTimeout(() => profile.savePriorities(categoryId, priorities), 600)
     return () => window.clearTimeout(timer)
     // profile is intentionally omitted: it changes identity on every save.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, priorities])
+  }, [profile.ready, categoryId, priorities])
 
   /* ---------------------------------------------------------------- URL sync */
 
@@ -239,6 +232,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
 
+  // Searching for a device should land you somewhere you can act on it: its
+  // category, with it already in the tray waiting for something to compare to.
+  const showDevice = useCallback((category: CategoryId, productId: string) => {
+    setCategoryId(category)
+    setSelectionState([productId])
+    setFilters(EMPTY_FILTERS)
+    setScreen('picker')
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [])
+
   const openCollection = useCallback((category: CategoryId, key: string) => {
     setCategoryId(category)
     setCollectionKey(key)
@@ -246,34 +249,31 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
 
-  const openEditorFor = useCallback((product: Product | null) => setEditorTarget(product), [])
-  const closeEditor = useCallback(() => setEditorTarget(undefined), [])
-
   /* --------------------------------------------------- comparison history */
 
   useEffect(() => {
+    if (!profile.ready) return
     if (screen !== 'compare' || !categoryId || selected.length < MIN_SELECTION) return
     profile.noteComparison(categoryId, selected)
     // Recording once per settled comparison, not on every profile identity change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, categoryId, selected.map((p) => p.id).join(',')])
+  }, [profile.ready, screen, categoryId, selected.map((p) => p.id).join(',')])
 
   const value = useMemo<AppStateValue>(
     () => ({
       screen, categoryId, selection, priorities, filters, catalogue, loadState, toast,
-      selected, editorTarget, collectionKey,
+      selected, collectionKey,
       openCollection,
       selectCategory, toggleProduct, removeProduct, clearSelection, setSelection,
       setPriority, setPriorities: setPrioritiesState, resetPriorities, patchFilters,
-      resetFilters, goHome, goPicker, goCompare, startMatchup, showToast,
-      openEditorFor, closeEditor,
+      resetFilters, goHome, goPicker, goCompare, startMatchup, showDevice, showToast,
     }),
     [
       screen, categoryId, selection, priorities, filters, catalogue, loadState, toast,
-      selected, editorTarget, collectionKey, openCollection,
+      selected, collectionKey, openCollection,
       selectCategory, toggleProduct, removeProduct, clearSelection,
       setSelection, setPriority, resetPriorities, patchFilters, resetFilters, goHome,
-      goPicker, goCompare, startMatchup, showToast, openEditorFor, closeEditor,
+      goPicker, goCompare, startMatchup, showDevice, showToast,
     ],
   )
 
