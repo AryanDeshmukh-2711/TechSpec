@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Category, Product } from '@/types'
 import { copyToClipboard } from '@/lib/clipboard'
 import { shareUrl } from '@/lib/urlState'
@@ -21,6 +21,25 @@ export function ShareButton({
   onToast: (message: string) => void
 }) {
   const [copied, setCopied] = useState(false)
+  const alive = useRef(true)
+  const resetTimer = useRef<number | undefined>(undefined)
+
+  // Both the clipboard write and the confirmation tick outlive a click, so
+  // neither may touch state after the user has navigated away.
+  useEffect(
+    () => () => {
+      alive.current = false
+      window.clearTimeout(resetTimer.current)
+    },
+    [],
+  )
+
+  const flashCopied = useCallback(() => {
+    if (!alive.current) return
+    setCopied(true)
+    window.clearTimeout(resetTimer.current)
+    resetTimer.current = window.setTimeout(() => setCopied(false), 2000)
+  }, [])
 
   const handleShare = async () => {
     const link = shareUrl({
@@ -38,16 +57,16 @@ export function ShareButton({
           url: link,
         })
         return
-      } catch {
-        // User dismissed the sheet, or the browser refused — copy instead.
+      } catch (error) {
+        // Dismissing the sheet is a decision, not a failure. Copying anyway
+        // would overwrite the clipboard after the user said no.
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        // Anything else means the browser refused — copy instead.
       }
     }
 
     const ok = await copyToClipboard(link)
-    if (ok) {
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
-    }
+    if (ok) flashCopied()
     onToast(ok ? 'Link copied — your priorities are included' : 'Could not copy the link')
   }
 
