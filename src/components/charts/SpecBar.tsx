@@ -40,34 +40,3 @@ export function SpecBar({
     </div>
   )
 }
-
-/** Horizontal labelled bar used in the pillar breakdown. */
-export function LabelledBar({
-  label,
-  value,
-  color,
-  suffix,
-  className,
-}: {
-  label: string
-  value: number
-  color: string
-  suffix?: string
-  className?: string
-}) {
-  return (
-    <div className={cn('flex items-center gap-3', className)}>
-      <span className="w-[86px] shrink-0 truncate text-[12px] text-muted">{label}</span>
-      <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-3">
-        <div
-          className="h-full rounded-full transition-[width] duration-500 ease-out"
-          style={{ width: `${Math.max(2, value)}%`, background: color }}
-        />
-      </div>
-      <span className="tnum w-9 shrink-0 text-right text-[12px] font-semibold text-ink">
-        {Math.round(value)}
-        {suffix}
-      </span>
-    </div>
-  )
-}
