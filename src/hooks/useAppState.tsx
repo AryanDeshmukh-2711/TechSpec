@@ -101,8 +101,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   // Persist priority changes so the next visit starts where this one ended.
   useEffect(() => {
-    if (!profile.ready || !categoryId || !Object.keys(priorities).length) return
-    const timer = window.setTimeout(() => profile.savePriorities(categoryId, priorities), 600)
+    if (!profile.ready || !categoryId) return
+    const category = getCategory(categoryId)
+    if (!category || !Object.keys(priorities).length) return
+
+    const defaults = defaultPriorities(category)
+    const neutral = Object.entries(defaults).every(([id, value]) => priorities[id] === value)
+
+    const timer = window.setTimeout(() => {
+      // Neutral is the absence of a preference, not one worth storing. Writing
+      // it back would leave the previous weights in place, so resetting the
+      // sliders — or clearing history — would silently restore them next visit.
+      if (neutral) profile.forgetPriorities(categoryId)
+      else profile.savePriorities(categoryId, priorities)
+    }, 600)
     return () => window.clearTimeout(timer)
     // profile is intentionally omitted: it changes identity on every save.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -155,6 +167,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const selectCategory = useCallback((id: CategoryId) => {
     setCategoryId(id)
     setSelectionState([])
+    setCollectionKey(null)
     setFilters(EMPTY_FILTERS)
     setScreen('picker')
     window.scrollTo({ top: 0, behavior: 'instant' })
@@ -210,10 +223,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setScreen('home')
     setCategoryId(null)
     setSelectionState([])
+    setCollectionKey(null)
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
 
-  const goPicker = useCallback(() => setScreen('picker'), [])
+  const goPicker = useCallback(() => {
+    setCollectionKey(null)
+    setScreen('picker')
+  }, [])
 
   const goCompare = useCallback(() => {
     if (selection.length < MIN_SELECTION) {
@@ -227,6 +244,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const startMatchup = useCallback((category: CategoryId, ids: string[]) => {
     setCategoryId(category)
     setSelectionState(ids.slice(0, MAX_SELECTION))
+    setCollectionKey(null)
     setFilters(EMPTY_FILTERS)
     setScreen('compare')
     window.scrollTo({ top: 0, behavior: 'instant' })
@@ -234,13 +252,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   // Searching for a device should land you somewhere you can act on it: its
   // category, with it already in the tray waiting for something to compare to.
-  const showDevice = useCallback((category: CategoryId, productId: string) => {
-    setCategoryId(category)
-    setSelectionState([productId])
-    setFilters(EMPTY_FILTERS)
-    setScreen('picker')
-    window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [])
+  const showDevice = useCallback(
+    (category: CategoryId, productId: string) => {
+      // Reaching a device through search is still looking at it, so it has to
+      // be recorded like a click on its card — the home feed is built from
+      // these, and it would otherwise be blind to anything found by searching.
+      const product = catalogueFor(category).find((p) => p.id === productId)
+      if (product) profile.noteView(product)
+
+      setCategoryId(category)
+      setSelectionState(product ? [productId] : [])
+      setCollectionKey(null)
+      setFilters(EMPTY_FILTERS)
+      setScreen('picker')
+      window.scrollTo({ top: 0, behavior: 'instant' })
+    },
+    [profile],
+  )
 
   const openCollection = useCallback((category: CategoryId, key: string) => {
     setCategoryId(category)
@@ -252,6 +280,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   /* --------------------------------------------------- comparison history */
 
   useEffect(() => {
+    // Writing into a profile that is about to be replaced by the stored one is
+    // wasted work, not a loss — StrictMode's second effect pass re-records it.
+    // The guard is here so the write happens once, against real data.
     if (!profile.ready) return
     if (screen !== 'compare' || !categoryId || selected.length < MIN_SELECTION) return
     profile.noteComparison(categoryId, selected)
