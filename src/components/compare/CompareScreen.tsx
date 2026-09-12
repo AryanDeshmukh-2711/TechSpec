@@ -166,7 +166,11 @@ export function CompareScreen({ category }: { category: Category }) {
         canRemove={selected.length > MIN_SELECTION}
       />
 
-      <div className="mt-4 space-y-3 pb-4">
+      <div className="mt-4 space-y-4 pb-10">
+        {eligible.length > 0 && (
+          <VerdictPanel category={category} scored={eligible} colors={colors} />
+        )}
+
         <DealBreakers
           category={category}
           scored={scored}
@@ -181,10 +185,6 @@ export function CompareScreen({ category }: { category: Category }) {
           onClear={() => setDealBreakers([])}
         />
 
-        {eligible.length > 0 && (
-          <VerdictPanel category={category} scored={eligible} colors={colors} />
-        )}
-
         <PriorityPanel
           category={category}
           priorities={priorities}
@@ -193,8 +193,16 @@ export function CompareScreen({ category }: { category: Category }) {
           onReset={resetPriorities}
         />
 
-        {/* Heavy sections start closed. The page opens with the answer and
-            the evidence is one click away. */}
+        {/* Everything above is the answer and the controls that move it.
+            Everything below is the evidence behind it — heavy sections, so
+            they start closed and the page opens calm. */}
+        <div className="flex items-center gap-3 pt-2 pb-0.5">
+          <span className="text-[11.5px] font-semibold tracking-[0.08em] text-faint uppercase">
+            Evidence
+          </span>
+          <span className="h-px flex-1 bg-line" />
+        </div>
+
         <Disclosure
           title="Capability profile"
           icon="Target"

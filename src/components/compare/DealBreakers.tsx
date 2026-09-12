@@ -46,20 +46,14 @@ export function DealBreakers({
   return (
     <section className="ts-card p-5" aria-labelledby="dealbreakers-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2
-            id="dealbreakers-heading"
-            className="flex items-center gap-2 text-[15px] font-semibold text-ink"
-          >
-            <Icon name="Target" size={16} className="text-brand-text" />
-            Must-haves
-            <InfoHint text="Requirements, not preferences. Anything failing one is removed from the ranking and the verdict, but stays in the table so you can see what it cost." />
-          </h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted">
-            Some specs aren't a matter of degree. Mark what you won't compromise on and the
-            verdict recalculates around what's left.
-          </p>
-        </div>
+        <h2
+          id="dealbreakers-heading"
+          className="flex items-center gap-2 text-[15px] font-semibold text-ink"
+        >
+          <Icon name="Target" size={16} className="text-brand-text" />
+          Must-haves
+          <InfoHint text="Requirements, not preferences. Anything failing one is removed from the ranking and the verdict, but stays in the table so you can see what it cost." />
+        </h2>
         {active.length > 0 && (
           <button
             type="button"
@@ -71,7 +65,7 @@ export function DealBreakers({
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
+      <div className="mt-3.5 flex flex-wrap gap-1.5">
         {offered.map((quick) => {
           const on = active.includes(quick.id)
           return (
