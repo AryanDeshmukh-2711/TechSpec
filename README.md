@@ -1,273 +1,292 @@
-# TechSpec
+<div align="center">
 
-**Comparison, weighted your way.** A technical product comparison engine for phones, laptops,
-tablets, smartwatches, headphones and cameras.
+# ⚖️ TechSpec
 
-Most comparison sites publish one score and ask you to accept their priorities. TechSpec asks
-for yours first: you set what matters, and the scores, the ranking, the winner and the verdict
-all recompute live — then travel with the share link.
+### Comparison, weighted your way
+
+**Compare phones, laptops, tablets, smartwatches, headphones and cameras by what matters to *you* —<br/>move a slider, and the scores, the winner and the verdict all recompute instantly.**
+
+<br/>
+
+![React](https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+<br/>
+![Vitest](https://img.shields.io/badge/Vitest-tested-6E9F18?style=for-the-badge&logo=vitest&logoColor=white) ![No backend](https://img.shields.io/badge/runs_in-your_browser-111827?style=for-the-badge) ![No tracking](https://img.shields.io/badge/no-account_·_no_tracking-111827?style=for-the-badge)
+
+[![CI](https://github.com/AryanDeshmukh-2711/TechSpec/actions/workflows/ci.yml/badge.svg)](https://github.com/AryanDeshmukh-2711/TechSpec/actions/workflows/ci.yml) ![Tests](https://img.shields.io/badge/tests-277_passing-2EA043) ![Devices](https://img.shields.io/badge/devices-80-C9F31D) ![Specs](https://img.shields.io/badge/specs-215-C9F31D)
+
+</div>
+
+---
+
+## 👋 In 30 seconds
+
+<table>
+<tr>
+<td width="22%">
+
+😟 **The problem**
+
+</td>
+<td>
+
+Comparison sites publish one score and expect you to accept their priorities. A gamer and a traveller want very different phones, yet they're shown the same "winner" — and no one can see how that number was made.
+
+</td>
+</tr>
+<tr>
+<td width="22%">
+
+💡 **The idea**
+
+</td>
+<td>
+
+TechSpec asks for **your** priorities first. Every spec is scored against the whole category, rolled up into pillars *you* weight with sliders, and any number can be opened to see exactly where it came from.
+
+</td>
+</tr>
+<tr>
+<td width="22%">
+
+🎯 **Who it's for**
+
+</td>
+<td>
+
+Anyone choosing a gadget who wants the reasoning, not just a star rating.
+
+</td>
+</tr>
+<tr>
+<td width="22%">
+
+🚦 **Where it is**
+
+</td>
+<td>
+
+Works end to end: **6 categories, 80 devices, 215 specs**, with 277 automated tests. It runs entirely in the browser — no account, no server, no tracking.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🧭 How it works
+
+```mermaid
+flowchart TB
+    subgraph R1[" "]
+        direction LR
+        A["📂 Pick a<br/>category"] --> B["📱 Choose 2 to 5<br/>devices"] --> C["🎚️ Set what<br/>matters to you"]
+    end
+    subgraph R2[" "]
+        direction LR
+        D["🏆 See the winner<br/>and why"] --> E["💸 Check value<br/>for money"] --> F["🔗 Share it, with<br/>your priorities"]
+    end
+    R1 --> R2
+
+    classDef step fill:#F7FEE7,stroke:#65A30D,stroke-width:2px,color:#1A2E05
+    class A,B,C,D,E,F step
+    style R1 fill:none,stroke:none
+    style R2 fill:none,stroke:none
+```
+
+---
+
+## ✨ What it can do
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🎚️ Your priorities, not theirs
+Each category has 6–7 **pillars** — like performance or battery — and you weight each one with a slider. The ranking, the winner and the verdict update the moment you move it.
+
+</td>
+<td width="50%" valign="top">
+
+### 🧾 Every number explained
+Open any score to see the specs behind it, each one's weight and the points it added. The points always add back up to the score — nothing has to be taken on trust.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 💸 Worth the money?
+A **value frontier** marks the devices nothing else beats on both price *and* score, so you can see what's genuinely good value rather than just cheap.
+
+</td>
+<td valign="top">
+
+### 👥 Six buyer profiles
+Every category has six ready-made buyer personas. One tap loads their priorities, and each device shows who it's actually *for*.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🚫 Must-haves
+Mark deal-breakers like "needs a telephoto camera", and TechSpec disqualifies devices at decision time — and tells you exactly which requirement ruled each one out.
+
+</td>
+<td valign="top">
+
+### 🏠 A home screen that learns
+It remembers your priorities, your recent comparisons and devices you viewed but never compared, then suggests matchups with a stated reason. All of it stays on your device.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top">
+
+### 🔗 Share links that carry your view
+One button shares a link that includes your priority weights, so whoever opens it sees the comparison **you** saw, not a neutral default. Plus a **⌘K** command palette to jump to any device from anywhere.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 📮 How one verdict is made
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor You as 👤 You
+    participant App as ⚖️ TechSpec
+    participant Engine as ⚙️ Scoring engine
+
+    You->>App: Phone A vs Phone B
+    App->>Engine: Their specs
+    Note over Engine: Each spec scored 0–100<br/>against all 16 phones
+    Engine-->>App: Pillar scores
+    You->>App: Battery matters more
+    App->>Engine: Your new weights
+    Engine-->>App: New ranking +<br/>value frontier
+    App-->>You: Verdict naming the<br/>specs that decided it
+    You->>App: Share
+    App-->>You: Link with your weights
+```
+
+---
+
+## 🏗️ How it's built
+
+```mermaid
+flowchart LR
+    Data[("📦 Catalogue<br/>6 categories<br/>80 devices")] --> Engine["⚙️ Scoring engine<br/>one file<br/>fully inspectable"]
+    Engine --> UI["⚛️ Screens<br/>Home · Picker<br/>Compare"]
+    UI <--> URL["🔗 The URL<br/>is the app state"]
+    UI <--> Local["💾 Your browser<br/>priorities & history"]
+
+    classDef core fill:#F7FEE7,stroke:#65A30D,stroke-width:2px,color:#1A2E05
+    classDef store fill:#EEF2FF,stroke:#6366F1,stroke-width:2px,color:#1E1B4B
+    class Engine,UI core
+    class Data,URL,Local store
+```
+
+Everything runs in your browser. There's no server to call, which is why it needs no account and sends nothing anywhere.
+
+| Layer | Tool | Why this one |
+|---|---|---|
+| 🖥️ Interface | **React 19 + TypeScript** | Typed from the data to the screen |
+| ⚡ Build | **Vite 6** | Fast development, small production bundle |
+| 🎨 Styling | **Tailwind CSS 4** | One consistent design system, light and dark |
+| 📊 Charts | **Hand-drawn SVG** | Radar, scatter and bar charts with no chart library at all |
+| 🧪 Tests | **Vitest** | Runs the scoring engine and every catalogue on each push |
+
+Only **three** packages ship to the browser: `react`, `react-dom` and `lucide-react` for icons.
+
+---
+
+## 🛡️ Built to be trusted
+
+| | What it means | How it's proven |
+|---|---|---|
+| 🔍 | **No black-box scores** | Any pillar can be broken down into its specs, weights and points, and the points always sum back to the score. |
+| 🧪 | **The maths is pinned down** | The engine is tested against an invented category where every expected number can be worked out by hand, so adding a real phone can never break a test. |
+| 📚 | **The data checks itself** | Tests run across all six real catalogues. A typo in a spec name fails the build instead of quietly producing a wrong verdict. |
+| 🔒 | **Private by design** | No account, no network requests, no identifier. What it remembers stays in your browser, and one command clears it. |
+| ♿ | **Accessible** | Text contrast measured to WCAG AA in both themes, charts never rely on colour alone, and reduced-motion is honoured. |
+
+```mermaid
+flowchart LR
+    P["📝 Push"] --> T["🔎 Type<br/>check"] --> U["🧪 277<br/>tests"] --> B["🏗️ Production<br/>build"] --> G["✅ Green tick"]
+    classDef ok fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20
+    class P,T,U,B,G ok
+```
+
+---
+
+<a name="roadmap"></a>
+
+## 🗺️ Roadmap
+
+| Status | Milestone |
+|:---:|---|
+| ✅ | Six categories: phones, laptops, tablets, smartwatches, headphones, cameras |
+| ✅ | Weighted scoring, explained verdicts, the value frontier, buyer personas and must-haves |
+| ✅ | A home screen that learns, the ⌘K palette, and share links that carry your priorities |
+| ✅ | Light and dark themes, measured to WCAG AA |
+| 🔜 | A bigger catalogue, through the ingest pipeline in `scripts/ingest/` |
+| 🔜 | Live retailer prices and price-drop alerts *(needs a backend and a price feed)* |
+| 🔜 | Accounts, so saved comparisons follow you between devices |
+| 🔜 | More languages |
+
+---
+
+## 📁 What's in this repository
+
+```
+📦 TechSpec
+├── 📂 src/
+│   ├── lib/              the engine: scoring, filters, recommendations, URL state
+│   ├── data/categories/  one file per category: its specs, pillars, personas and devices
+│   ├── personalisation/  what the home screen remembers, on your device only
+│   └── components/       screens, hand-drawn charts, and the ⌘K palette
+├── 📂 scripts/ingest/    tools to grow the catalogue from public sources
+├── 📂 docs/              the developer guide and research notes
+└── 📂 .github/workflows/ the checks that run on every push
+```
+
+---
+
+## 👩‍💻 For developers
+
+You need **Node.js 22** (the version CI uses).
 
 ```bash
 npm install
+```
+
+```bash
 npm run dev
 ```
 
----
+Then open <http://localhost:5173>. To run the same checks as GitHub:
 
-## What makes it different 
-
-| | Typical comparison site | TechSpec |
-|---|---|---| 
-| Scoring | One fixed editorial score | Seven weighted pillars you control with sliders |
-| Normalisation | Best-of-the-two-you-picked | 0–100 against the **entire category catalogue** |
-| Verdict | "X is better" | Names the specs that produced the result, and where the winner gives ground |
-| Price | A column in the table | A Pareto **value frontier** — shows what's genuinely worth its price |
-| Sharing | A link to a page | A link that carries **your weights**, so the recipient sees your priorities |
-| Personas | — | Six independent buyer weightings, one tap to load |
-| Auditability | Trust the number | **Open any pillar** and see the specs, weights and points behind it |
-| Hard requirements | Filters, at browse time | **Must-haves** that disqualify at decision time, and say why |
-| The home screen | Same for everyone | **Adapts to you** — your priorities, history and suggestions |
-
-The engine is the product. `src/lib/scoring.ts` is ~250 lines and fully inspectable — nothing
-is hidden behind a proprietary index.
-
----
-
-## App structure & major screens
-
-```
-                    ⌘K command palette  ─────┐
-                                             │
-Home  ──►  Picker  ──►  Compare              │  (jump anywhere,
- │           │            │                  │   search every device,
- │           │            │                  │   run any action)
- │           │            └── verdict · must-haves · priorities · charts
- │           │                personas · head-to-head · spec sheet · audit
- │           └── search · filters · sort · device grid · guides · compare tray
- └── personalised feed: continue · suggestions · your categories
+```bash
+npm run build
 ```
 
-**1. Home** — a feed, not a brochure. A first-time visitor gets the pitch and a way in;
-everyone after that gets their own things first: comparisons in progress, devices they viewed
-but never decided on, and their categories ordered by actual use.
+**The full developer guide is in [`docs/DEVELOPER-GUIDE.md`](docs/DEVELOPER-GUIDE.md):**
 
-**2. Picker** — search across name/brand/spec text, brand chips, a dual-thumb price range,
-category-specific quick filters ("120Hz+", "Has telephoto", "Dual-band GPS"), six sort modes,
-and a sticky tray that always shows five slots so the 2–5 rule needs no instructions. A
-"Help me choose" wizard and generated buying guides sit above the grid for anyone who would
-rather be asked what they need than start from a list.
-
-**3. Compare** — the payoff, in deliberate reading order:
-
-| Section | Answers |
+| Topic | Jump to |
 |---|---|
-| **Verdict panel** | Who wins, why, and where it gives ground |
-| **Priority panel** | "…but what if I care about battery instead?" |
-| **Radar chart** | Shape of each product's capability across all pillars |
-| **Value scatter** | Is it worth the money? (with the Pareto frontier drawn) |
-| **Must-haves** | What's disqualified outright, and on which requirement |
-| **Score drill-down** | Where did that pillar number actually come from? |
-| **Persona grid** | Who is each of these actually *for*? |
-| **Head to head** | Which specs produced each product's lead |
-| **Spec sheet** | The full evidence, grouped and highlighted |
+| ⚙️ How the numbers are worked out | [How the scoring works](docs/DEVELOPER-GUIDE.md#how-the-scoring-works) |
+| ➕ Adding a new kind of device | [Adding a category](docs/DEVELOPER-GUIDE.md#adding-a-category) |
+| 🧪 What the tests guard | [Testing](docs/DEVELOPER-GUIDE.md#testing) |
+| 🎨 The design rules | [Design](docs/DEVELOPER-GUIDE.md#design) |
 
 ---
 
-## UI layout & component breakdown
+<div align="center">
 
-```
-src/
-├── types.ts                    Domain model: Category, SpecDef, Pillar, Persona, ScoredProduct
-├── lib/
-│   ├── scoring.ts              ★ Normalisation, pillars, weighted overall, value index,
-│   │                             Pareto frontier, persona verdicts, generated explanations
-│   ├── filters.ts              Search scoring, filtering, sorting, cached baseline scores
-│   ├── format.ts               Spec/price/delta formatting, series colours
-│   ├── urlState.ts             URL ⇄ state (the URL *is* the app state)
-│   ├── recommend.ts            Guided recommender: questions derived from the schema
-│   ├── collections.ts          Buying guides generated from the catalogue
-│   ├── clipboard.ts            Copy with a legacy fallback
-│   └── cn.ts                   Class joiner
-├── data/
-│   ├── index.ts                Registry, catalogue, group metadata
-│   ├── shared.ts               Cross-category specs (price, release year), brand accents
-│   └── categories/             One file per category: spec schema + pillars + personas
-│       ├── mobiles.ts          16 products · 47 specs · 7 pillars
-│       ├── laptops.ts          29 products · 38 specs · 7 pillars
-│       ├── tablets.ts           8 products · 32 specs
-│       ├── smartwatches.ts      8 products · 34 specs
-│       ├── headphones.ts       10 products · 29 specs
-│       └── cameras.ts           9 products · 35 specs
-├── personalisation/
-│   ├── profile.ts              Remembered priorities, history, affinity, suggestions
-│   └── ProfileProvider.tsx     Local-only, no account, no network
-├── hooks/
-│   ├── useAppState.tsx         Provider: selection, priorities, filters, toast
-│   └── useMediaQuery.ts        Drives the spec table's layout switch
-└── components/
-    ├── DeviceGlyph.tsx         Procedural SVG device artwork, tinted per brand
-    ├── ui/                     Button · Chip · Badge · Switch · InfoHint · Skeleton
-    │                           EmptyState · StarRating · DualRange · Modal · Disclosure · Icon
-    ├── charts/                 RadarChart · SpecBar · ValueScatter · ScoreRing
-    ├── layout/                 AppShell · CommandPalette (⌘K)
-    ├── home/HomeScreen.tsx     Personalised feed
-    ├── quiz/RecommendWizard.tsx  Three questions, ranked answer
-    ├── collections/            Generated buying guides
-    ├── picker/                 PickerScreen · ProductCard · CompareTray
-    └── compare/                CompareScreen · VerdictPanel · PriorityPanel · ProductColumns
-                                PersonaGrid · HeadToHead · SpecTable · ShareButton
-                                PillarBreakdown · DealBreakers · AddProduct
-```
+**Built by [Aryan Deshmukh](https://github.com/AryanDeshmukh-2711)**
 
-Tests sit next to what they cover (`scoring.test.ts`, `format.test.ts`,
-`urlState.test.ts`, `recommend.test.ts`, `collections.test.ts`,
-`data/catalogue.test.ts`, `personalisation/profile.test.ts`), with a synthetic
-fixture category in `lib/__fixtures__/`.
-
-★ = the file worth reading first.
-
-**No chart library.** Radar, scatter, bars and rings are hand-drawn SVG — fully themeable,
-theme-aware, and worth ~0 KB of dependency weight. Total runtime deps: `react`,
-`react-dom`, `lucide-react`.
-
-**No product photos.** `DeviceGlyph` draws a per-category silhouette tinted with the brand
-accent. No licensing questions, no broken images, no inconsistent framing.
-
----
-
-## What it deliberately doesn't do
-
-The app is a decision tool, not a data workbench. There is no spec editor, no CSV or JSON
-export, no file import, no print stylesheet and no saved-comparison library. Each of those
-asked the reader to manage the product instead of using it, and every one of them was a step
-between arriving and getting an answer.
-
-The catalogue ships with the app. That makes it honest about what it knows — nothing is
-half-entered, nothing is a placeholder — and it makes every score reproducible: the same URL
-gives everyone the same numbers. Growing it is `scripts/ingest/`'s job, not the reader's.
-
-## What it remembers
-
-Local only. No account, no network, no identifier.
-
-- **Priorities per category** — set your phone weights once and they're there next time.
-- **History** — recent comparisons and viewed devices, capped so storage can't grow unbounded.
-- **Suggestions** — built from what you actually opened, and each one states its reason
-  ("You looked at these but never put them side by side"). Brand affinity decays with a
-  two-week half-life so a phase last month doesn't outrank yesterday.
-- **Category order** — the home screen leads with what you use.
-
-Clear all of it from ⌘K → *Clear history and remembered priorities*.
-
-## How the scoring works
-
-1. **Normalise.** Every spec becomes 0–100 against the whole category catalogue, inverted for
-   lower-is-better specs (weight, price, charge time). Enums rank by position; booleans are
-   0/1. A spec every product shares scores 50 rather than inventing a winner.
-2. **Roll up into pillars.** Each pillar is a weighted mean of its member specs. Missing
-   values are skipped and the remaining weights re-normalised, so a product isn't punished
-   for an unreported spec.
-3. **Roll up into an overall score** using *your* slider weights (0–10 per pillar).
-4. **Value index** = score ÷ √(price ÷ category median). The square root stops a $99 product
-   from winning purely by being cheap — it rewards efficiency, not frugality.
-5. **Value frontier** = the Pareto-optimal set: products nothing else beats on price *and*
-   score.
-
-Any of it can be audited: `explainPillar()` decomposes a pillar into its member
-specs, each one's weight, and the points it contributed — and the points always
-sum back to the pillar score. The UI exposes this directly, so no number in the
-product has to be taken on trust.
-
-Must-haves are applied separately via `applyDealBreakers()`. They reuse the
-category's own quick-filter predicates, gate the ranking and every verdict, and
-never remove a product from the spec table — seeing *why* something is out
-matters as much as the shortlist.
-
-The overall score is a **match score, not a quality grade**. 100 would mean topping every
-weighted pillar across the whole category — including price, which flagships never win.
-
-### Data honesty
-
-Specs are compiled from manufacturer listings and published test results. A few metrics are
-explicitly editorial and labelled as such in the UI (`Editorial photo score`, `ANC
-effectiveness`, `Handling score`, `GPU index`). The `GPU index` is a cross-platform graphics
-scale normalised so a laptop RTX 4060 = 100, because 3DMark numbers don't exist for Apple
-silicon. Verify against the retailer before buying.
-
----
-
-## Responsive behaviour
-
-The spec table is not one layout squeezed down. Above `lg` it's a column grid with a sticky
-product header; below `lg` it becomes a stacked per-spec comparison with mini bars, because a
-five-column table at 375px is unreadable. One component, one set of grouping logic, two
-renderings — driven by `useIsDesktop()`.
-
-## Sharing
-
-One button. The native share sheet where available, otherwise a copied URL encoding the
-category, the selection **and the priority weights** — so whoever opens it sees the comparison
-you saw rather than the neutral default.
-
-## Adding a category
-
-Add one file under `src/data/categories/`, exporting a `Category` (spec schema, pillars,
-personas, quick filters) and a `Product[]`, then register it in `src/data/index.ts`. No
-component changes — the picker, scoring engine, charts and spec table are all category-agnostic.
-
-## Testing
-
-`npm test` runs the Vitest suite. Two kinds of test carry their weight here:
-
-**Engine tests** run against a synthetic fixture category, so adding a phone can
-never break them and every expected number is derivable by hand. They pin the
-behaviours the product promises — normalisation is against the catalogue not the
-selection, lower-is-better inverts, a universally-shared spec never declares a
-winner, missing values re-normalise rather than penalise, moving a slider can
-change the winner, and a dominated product falls off the value frontier. Several
-are regression guards for bugs found in review (a persona explaining itself with
-a pillar it barely weights; `2,025` rendered as a year).
-
-**Data-integrity tests** run against all six real catalogues. The realistic
-failure mode for hand-authored data is a typo — a pillar weighting a spec key
-that no longer exists, an enum value missing from its own ordering, a persona
-pointing at a renamed pillar. None of that throws; it silently scores zero and
-quietly corrupts a verdict. These make the data validate itself, so a bad edit
-fails CI instead of shipping a wrong recommendation.
-
-CI (`.github/workflows/ci.yml`) runs typecheck, tests and a production build on
-every push and pull request against `main`.
-
-## Scripts
-
-| | |
-|---|---|
-| `npm run dev` | Dev server on :5173 |
-| `npm test` | Vitest, single run |
-| `npm run test:watch` | Vitest in watch mode |
-| `npm run build` | Typecheck + tests + production build |
-| `npm run preview` | Serve the production build |
-| `npm run typecheck` | `tsc --noEmit` |
-
-## Design
-
-Deliberately quiet. This is a tool for reading numbers, so the interface recedes: neutral
-greys, one accent, standard radii, a single system sans. No display face, no textures, no
-glows — the data is the interest.
-
-- **A four-control header.** Where you are, search, the one action that matters now, and the
-  theme. Category navigation lives on the page and in the palette, not in a bar that is on
-  screen permanently.
-- **Progressive disclosure.** A comparison opens with the verdict, the ranking and your
-  priority sliders. Charts, personas, head-to-head and the full spec sheet start collapsed
-  behind one-line summaries.
-- **⌘K everywhere** — jump to a category, find any device across every catalogue, run an action.
-- **Light-first**, with a full dark theme and no flash on load.
-- **Five-slot series palette** — every device keeps its colour across the tray, column header,
-  radar, scatter, bars and head-to-head.
-- **Never colour alone** — radar series also carry dash patterns and marker shapes; a
-  best-in-class cell gets an icon and a rule, not just a tint.
-- All text tiers pass **WCAG AA** in both themes — measured 5.0 / 6.7 / 17.9 (light) and
-  5.8 / 7.1 / 15.2 (dark) for faint / muted / ink, with brand, best and danger all ≥ 5.0.
-- `prefers-reduced-motion` honoured; skip link, focus rings, ARIA on charts and dialogs.
-
+</div>
